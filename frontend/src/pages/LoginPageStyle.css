@@ -1,0 +1,17 @@
+.page-body {
+    background: linear-gradient(to right, #667eea, #b2c8d1);
+}
+
+.main-form {
+    background-color: rgba(99, 110, 114, 0.4);
+    color: #fff;
+    border: 2px solid rgba(223, 230, 233, 1.0);
+    border-radius: 12px;
+}
+
+.logo-box {
+    border-radius: 10px;
+    background-color: rgba(223, 230, 233, 1.0);
+    border-bottom-right-radius: 70px;
+    border-top-right-radius: 70px;
+}

@@ -1,0 +1,74 @@
+# ===============================
+# Node / Frontend
+# ===============================
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+.pnp/
+.pnp.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build / test artifacts
+dist/
+build/
+coverage/
+.cache/
+.parcel-cache/
+.next/
+out/
+
+# ===============================
+# Python / Backend
+# ===============================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+backend/venv/
+
+# ===============================
+# Environment / Secrets
+# ===============================
+.env
+.env.*
+!.env.example
+
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.jks
+*.keystore
+secrets.*
+
+# ===============================
+# Runtime data and uploads
+# ===============================
+logs/
+*.log
+uploads/
+tmp/
+temp/
+
+# ===============================
+# OS / IDE
+# ===============================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+

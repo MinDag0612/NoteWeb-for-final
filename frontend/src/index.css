@@ -1,0 +1,10 @@
+body {
+  margin: 0;
+  font-family: "Cousine", monospace;
+  font-optical-sizing: auto;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}

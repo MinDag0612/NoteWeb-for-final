@@ -1,0 +1,9 @@
+.header-block {
+    background-color: rgba(52, 73, 94, 0.4);
+    border-radius: 12px;
+    border: 2px solid rgba(236, 240, 241,1.0);
+}
+
+.web-name {
+    color: rgba(236, 240, 241,1.0);
+}

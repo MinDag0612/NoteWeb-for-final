@@ -1,0 +1,29 @@
+.card-area {
+  position: relative;
+}
+
+.card-area::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  pointer-events: none;
+  transition: background 0.2s ease;
+  z-index: 1;
+}
+
+.card-area:hover::after {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.rm-icon {
+  z-index: 2;
+  color: #c0392b;
+  padding: 3px;
+  border-radius: 6px;
+}
+
+.rm-icon:hover {
+  color: #fff;
+  background-color: rgba(230, 126, 34, 1.0);
+}

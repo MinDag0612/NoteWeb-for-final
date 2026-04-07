@@ -1,0 +1,17 @@
+# 1. Python base image
+FROM python:3.10
+
+# 2. Set working directory
+WORKDIR /app
+
+# 3. Copy requirements file
+COPY backend/requirements.txt .
+
+# 4. Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 5. Copy backend source code
+COPY backend ./backend
+
+# 6. Run server
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
