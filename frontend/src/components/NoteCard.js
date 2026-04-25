@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { ReactComponent as RmIcon } from "../assets/RemoveIcon.svg";
 import "./NoteCard.css";
 import OpenNote from "./OpenNote";
@@ -38,7 +38,6 @@ export default function NoteCard({
       <div
         className="card-area p-0 h-100"
         onClick={() => {
-          // console.log(noteId);
           setOpen(true);
         }}
       >

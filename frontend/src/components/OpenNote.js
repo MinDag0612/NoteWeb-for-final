@@ -1,5 +1,4 @@
-import React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import "./OpenNote.css";
 import { ReactComponent as RmIcon } from "../assets/RemoveIcon.svg";
 
@@ -29,20 +28,17 @@ export default function OpenNote({
     return (
       <div className="image-grid ">
         {img.map((url, i) => (
-          <>
-            <div className="image-icon position-relative w-100 h-100">
-              <RmIcon
-                className="rm-icon position-absolute top-0 end-0 m-2"
-                onClick={() => handleRmImg(i)}
-              />
-              <img
-                key={i}
-                src={url}
-                alt={`img-${i}`}
-                className="w-100 h-100 object-fit-cover"
-              />
-            </div>
-          </>
+          <div className="image-icon position-relative w-100 h-100" key={url || i}>
+            <RmIcon
+              className="rm-icon position-absolute top-0 end-0 m-2"
+              onClick={() => handleRmImg(i)}
+            />
+            <img
+              src={url}
+              alt={`img-${i}`}
+              className="w-100 h-100 object-fit-cover"
+            />
+          </div>
         ))}
       </div>
     );
@@ -123,12 +119,12 @@ export default function OpenNote({
         <input
           type="text"
           id="title"
-          class="form-control form-control-lg mb-1"
+          className="form-control form-control-lg mb-1"
           value={currentTitle}
           onChange={(e) => setCurrentTitle(e.target.value)}
         />
 
-        <div class="d-flex form-group flex-grow-1 flex-column">
+        <div className="d-flex form-group flex-grow-1 flex-column">
           <textarea
             className="form-control note-textarea"
             id="content"
@@ -137,7 +133,7 @@ export default function OpenNote({
             onChange={(e) => setcurentContent(e.target.value)}
           />
 
-          <label for="content">Image</label>
+          <label htmlFor="content">Image</label>
           <div
             className="image-box text-center drop-zone"
             onDrop={handleDrop}

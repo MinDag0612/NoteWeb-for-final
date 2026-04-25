@@ -1,4 +1,3 @@
-import React from 'react'
 import "./ButtonCom.css"
 
 export default function ButtonCom({name, type, onClick}) {

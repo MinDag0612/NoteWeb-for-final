@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "./LoginPageStyle.css";
 import ButtonCom from "../components/ButtonCom";
 import { useNavigate } from "react-router-dom";
@@ -34,9 +34,6 @@ export default function LoginPage() {
     })
       .then(async (response) => {
         if (!response.ok) {
-          console.log(response.status);
-          console.log(response.headers.get("content-type"));
-
           const err = await response.json();
           throw new Error(err.detail || "Login failed");
         }
@@ -45,7 +42,6 @@ export default function LoginPage() {
       .then((data) => {
         sessionStorage.setItem("user", JSON.stringify(data.user));
         sessionStorage.setItem("access_token", data.access_token);
-        // console.log(JSON.stringify(data.user))
         navigator("/home");
       })
       .catch((error) => {
@@ -69,34 +65,29 @@ export default function LoginPage() {
                     <b>Login</b>
                   </h2>
                   <p>
-                    First time you here ?{" "}
-                    <a href="">
-                      <b>Signup</b>
-                    </a>
+                    First time you here ? <b>Signup</b>
                   </p>
                 </div>
                 <form onSubmit={onSubmit}>
-                  <div class="form-group mb-3">
-                    <label className="" for="formGroupExampleInput">
+                  <div className="form-group mb-3">
+                    <label className="" htmlFor="email">
                       Email
                     </label>
                     <input
                       type="email"
-                      class="form-control"
+                      className="form-control"
                       id="email"
                       placeholder="example@gmail.com"
                     />
                   </div>
-                  <div class="form-group mb-3">
-                    <label className="mb-1" for="formGroupExampleInput2">
+                  <div className="form-group mb-3">
+                    <label className="mb-1" htmlFor="password">
                       Password
                     </label>
-                    <input type="password" class="form-control" id="password" />
+                    <input type="password" className="form-control" id="password" />
                   </div>
                   <div className="text-end">
-                    <a href="">
-                      <b>Forgot password ?</b>
-                    </a>
+                    <b>Forgot password ?</b>
                   </div>
                   <ButtonCom name={"Login"} type={"submit"} />
                 </form>
@@ -107,7 +98,7 @@ export default function LoginPage() {
               </div>
             </div>
             {error ? (
-              <button type="button" class="btn btn-outline-warning w-100 mt-2">
+              <button type="button" className="btn btn-outline-warning w-100 mt-2">
                 {" "}
                 {error}{" "}
               </button>

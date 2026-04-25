@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import NoteCard from "../components/NoteCard";
 import "./NotesPageStyle.css";
 import { useNavigate } from "react-router-dom";
@@ -26,7 +26,6 @@ export default function NotesPage({ token }) {
       }
 
       const data = await res.json();
-      // console.log(data);
 
       setNotes((prev) => prev.filter((n) => n.noteId !== noteId));
     } catch (error) {
@@ -84,7 +83,6 @@ export default function NotesPage({ token }) {
         }
 
         const data = await res.json();
-        console.log(data.notes)
         setNotes(data.notes);
       } catch (err) {
         console.error("Fetch notes error:", err);
@@ -96,7 +94,6 @@ export default function NotesPage({ token }) {
     if (!token) return;
 
     fetchNotes();
-    // console.log("TOKEN SENT:", token);
   }, [token, navigator]);
 
   return (

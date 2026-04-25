@@ -1,5 +1,3 @@
-import React from 'react'
-import ButtonCom from './ButtonCom'
 import "./HeaderCom.css"
 
 export default function HeaderCom( {userName }) {
@@ -12,7 +10,7 @@ export default function HeaderCom( {userName }) {
         </div>
 
         <div className='m-0 ms-auto'>
-        <button type="button" class="btn btn-outline-light">Logout</button>
+        <button type="button" className="btn btn-outline-light">Logout</button>
         </div>
     </div>
     </>

@@ -15,9 +15,6 @@ function checkAcc(idToken, navigator) {
     })
       .then(async (response) => {
         if (!response.ok) {
-          console.log(response.status);
-          console.log(response.headers.get("content-type"));
-
           const err = await response.json();
           throw new Error(err.detail || "Login failed");
         }
@@ -26,11 +23,9 @@ function checkAcc(idToken, navigator) {
       .then((data) => {
         sessionStorage.setItem("user", JSON.stringify(data.user));
         sessionStorage.setItem("access_token", data.access_token)
-        console.log(JSON.stringify(data.user))
-        console.log("token: ", data.access_token)
         navigator("/home");
       })
-      .catch((error) => {
+      .catch(() => {
         sessionStorage.setItem("error", "User not found please register first")
         window.location.reload();
         
@@ -42,9 +37,6 @@ function GoogleLogin() {
 
   const handleCredentialResponse = (response) => {
     const idToken = response.credential;
-    console.log(idToken)
-
-    // sessionStorage.setItem("user", JSON.stringify(idToken));
     
     checkAcc(idToken, navigator)
 
