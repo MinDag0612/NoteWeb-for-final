@@ -12,13 +12,13 @@ Authentication supports local login and Google login. Data is stored in MongoDB.
 ```
 Browser (React SPA)
         |
-        | HTTP/HTTPS
+        | HTTPS
         v
-     Nginx (Phase 2+ deployment)
+ Swarm Ingress / Reverse Proxy
         |
         | /api/*
         v
- FastAPI (Gunicorn + Uvicorn worker)
+ FastAPI container service
         |
         v
  MongoDB Atlas
@@ -37,12 +37,11 @@ Browser (React SPA)
 ```text
 .
 |- backend/          # FastAPI backend source
-|- src/                 # React frontend source
-|- public/              # Static frontend assets
-|- scripts/             # Linux automation scripts (Phase 1/2)
-|- deploy/              # Deployment assets (Nginx, systemd service, manual deploy notes)
-|- docs/                # Evidence screenshots and project docs
-|- .env.example         # Environment variable template
+|- frontend/         # React frontend source, Dockerfile, and static assets
+|- tests/            # Backend test suite for CI
+|- docs/             # CI/CD evidence and handoff docs
+|- .github/          # GitHub Actions workflow and PR template
+|- docker-compose.yml # Local multi-container smoke setup
 |- README.md
 ```
 
@@ -58,8 +57,8 @@ Browser (React SPA)
 ### 5.2 Clone Repository
 
 ```bash
-git clone https://github.com/MinDag0612/note-web-app-DOM.git
-cd note-web-app-DOM
+git clone https://github.com/MinDag0612/NoteWeb-for-final.git
+cd NoteWeb-for-final
 ```
 
 ### 5.3 Configure Environment Variables
@@ -94,6 +93,39 @@ uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 Backend health check: `http://127.0.0.1:8000/`
+
+### 5.6 Run CI Validation Locally
+
+Frontend:
+
+```bash
+cd frontend
+npm ci
+npm run lint
+npm run test:ci -- --runInBand
+npm run build
+```
+
+Backend:
+
+```bash
+python -m venv .venv
+# Linux/macOS:
+source .venv/bin/activate
+# Windows PowerShell:
+# .\.venv\Scripts\Activate.ps1
+
+python -m pip install -r backend/requirements.txt -r backend/requirements-dev.txt
+python -m ruff check backend tests
+python -m pytest
+```
+
+Optional local image build checks:
+
+```bash
+docker build -f frontend/dockerfile -t noteweb-frontend:test .
+docker build -f backend/dockerfile -t noteweb-backend:test .
+```
 
 ## 6. Environment Variables
 
@@ -149,6 +181,18 @@ The intended workflow for this repository:
 - `main` is updated only through Pull Requests.
 - Every PR must include a clear description and at least one reviewer approval.
 - Branch protection rules are enabled on `main` (no direct push, no force push).
+- Commit messages should be concise, technical, and written in English.
+- CI-related changes should include explicit verification notes in the PR description.
+- Delivery-affecting changes should preserve the `sha-*` deployment contract unless intentionally redesigned.
+
+Current working branch for this phase:
+
+- `feature/module2-ci`
+
+Supporting review and handoff docs:
+
+- [`docs/PHASE2_HANDOFF.md`](docs/PHASE2_HANDOFF.md)
+- [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md)
 
 ## 10. CI Image Publishing Contract
 
