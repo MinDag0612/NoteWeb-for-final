@@ -204,4 +204,23 @@ Security exception note:
 - Source-repo Trivy enforcement uses a path-scoped exception file for legacy CRA build-time findings in `frontend/package-lock.json`. The rationale and exit plan are documented in [`SECURITY_RISK_ACCEPTANCE.md`](SECURITY_RISK_ACCEPTANCE.md).
 - Container image Trivy enforcement remains blocking for fixable `HIGH` and `CRITICAL` findings, while ignoring unfixed upstream issues until vendor patches exist. The rationale is documented in [`SECURITY_RISK_ACCEPTANCE.md`](SECURITY_RISK_ACCEPTANCE.md).
 
+## 13. CI Evidence Artifacts
+
+Phase 2 CI now produces explicit evidence artifacts intended for grading, report writing, and demo support:
+
+- `frontend-build`
+  - reproducible frontend production build output
+- `trivy-fs-report`
+  - repository-level Trivy JSON report for vulnerabilities, secrets, and misconfigurations
+- `image-evidence-frontend`
+  - frontend image metadata JSON
+  - frontend Trivy image JSON report
+  - frontend CycloneDX SBOM
+- `image-evidence-backend`
+  - backend image metadata JSON
+  - backend Trivy image JSON report
+  - backend CycloneDX SBOM
+
+Artifact-to-rubric mapping and report guidance are documented in [`docs/CI_EVIDENCE_MAP.md`](docs/CI_EVIDENCE_MAP.md).
+
 

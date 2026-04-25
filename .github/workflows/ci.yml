@@ -18,6 +18,7 @@ concurrency:
 env:
   NODE_VERSION: "20"
   PYTHON_VERSION: "3.10"
+  ARTIFACT_RETENTION_DAYS: "14"
 
 jobs:
   frontend-ci:
@@ -58,6 +59,15 @@ jobs:
           name: frontend-build
           path: frontend/build
           if-no-files-found: error
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
+      - name: Summarize frontend evidence
+        run: |
+          {
+            echo "### Frontend CI Evidence"
+            echo "- Artifact: \`frontend-build\`"
+            echo "- Purpose: reproducible frontend build output for report, demo, and future CD handoff"
+          } >> "${GITHUB_STEP_SUMMARY}"
 
   backend-ci:
     name: Backend CI
@@ -114,6 +124,7 @@ jobs:
           name: trivy-fs-report
           path: trivy-fs-report.json
           if-no-files-found: error
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
 
       - name: Enforce Trivy severity gate
         uses: aquasecurity/trivy-action@0.35.0
@@ -125,6 +136,16 @@ jobs:
           format: table
           exit-code: "1"
           trivyignores: .trivyignore.yaml
+
+      - name: Summarize repository security evidence
+        if: always()
+        run: |
+          {
+            echo "### Repository Security Evidence"
+            echo "- Artifact: \`trivy-fs-report\`"
+            echo "- Scan scope: filesystem source tree"
+            echo "- Gate: blocks \`HIGH\` and \`CRITICAL\` findings after scoped risk acceptance is applied"
+          } >> "${GITHUB_STEP_SUMMARY}"
 
   docker-images:
     name: Docker Images (${{ matrix.service }})
@@ -190,6 +211,58 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
 
+      - name: Prepare evidence workspace
+        run: mkdir -p artifacts
+
+      - name: Record ${{ matrix.service }} image metadata
+        run: |
+          cat > "artifacts/${{ matrix.service }}-image-metadata.json" <<EOF
+          {
+            "service": "${{ matrix.service }}",
+            "image_repository": "${{ matrix.image }}",
+            "immutable_tag": "${{ steps.image-vars.outputs.sha_tag }}",
+            "traceability_tag": "${{ steps.image-vars.outputs.branch_tag }}",
+            "git_sha": "${{ github.sha }}",
+            "git_ref": "${{ github.ref }}",
+            "event_name": "${{ github.event_name }}",
+            "workflow": "${{ github.workflow }}",
+            "run_id": "${{ github.run_id }}",
+            "run_number": "${{ github.run_number }}"
+          }
+          EOF
+
+      - name: Generate Trivy ${{ matrix.service }} image report
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: image
+          image-ref: ${{ steps.image-vars.outputs.sha_tag }}
+          scanners: vuln,secret
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          format: json
+          output: artifacts/${{ matrix.service }}-trivy-image-report.json
+          exit-code: "0"
+
+      - name: Generate CycloneDX SBOM for ${{ matrix.service }}
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: image
+          image-ref: ${{ steps.image-vars.outputs.sha_tag }}
+          format: cyclonedx
+          output: artifacts/${{ matrix.service }}-sbom.cdx.json
+          exit-code: "0"
+
+      - name: Upload ${{ matrix.service }} image evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-evidence-${{ matrix.service }}
+          path: |
+            artifacts/${{ matrix.service }}-image-metadata.json
+            artifacts/${{ matrix.service }}-trivy-image-report.json
+            artifacts/${{ matrix.service }}-sbom.cdx.json
+          if-no-files-found: error
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
       - name: Scan ${{ matrix.service }} image with Trivy
         uses: aquasecurity/trivy-action@0.35.0
         with:
@@ -200,6 +273,17 @@ jobs:
           ignore-unfixed: true
           format: table
           exit-code: "1"
+
+      - name: Summarize ${{ matrix.service }} image evidence
+        if: always()
+        run: |
+          {
+            echo "### ${{ matrix.service }} Image Evidence"
+            echo "- Immutable deployment tag: \`${{ steps.image-vars.outputs.sha_tag }}\`"
+            echo "- Traceability tag: \`${{ steps.image-vars.outputs.branch_tag }}\`"
+            echo "- Artifact: \`image-evidence-${{ matrix.service }}\`"
+            echo "- Contents: Trivy JSON report, CycloneDX SBOM, deployment metadata JSON"
+          } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Push ${{ matrix.service }} image tags
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
