@@ -64,10 +64,11 @@ cd NoteWeb-for-final
 ### 5.3 Configure Environment Variables
 
 ```bash
-cp .env.example .env
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 ```
 
-Update `.env` with real values before running backend features that depend on third-party services.
+Update those environment files with real values before running features that depend on third-party services.
 
 ### 5.4 Run Frontend
 
@@ -129,7 +130,10 @@ docker build -f backend/dockerfile -t noteweb-backend:test .
 
 ## 6. Environment Variables
 
-All environment variables are documented in `.env.example`.
+Environment variables are documented in:
+
+- `backend/.env.example`
+- `frontend/.env.example`
 
 - `MONGODB_URI`: MongoDB Atlas connection string
 - `JWT_SECRET_KEY`: secret key for JWT token signing
@@ -141,14 +145,13 @@ All environment variables are documented in `.env.example`.
 
 No real credentials are committed to this repository.
 
-## 7. Automation Scripts (`/scripts`)
+## 7. Repository Notes
 
-- `scripts/setup.sh`: Phase 1 Ubuntu preparation script.
-  - Installs required runtimes and OS packages.
-  - Creates required directories (`logs`, `uploads`, `data`).
-  - Prepares backend virtual environment and frontend dependencies.
-  - Prints clear step-by-step logs.
-- `scripts/deploy.sh`: deployment-oriented script used in later manual deployment steps.
+This branch does not currently ship retained `scripts/` or `deploy/` directories.
+
+- Earlier project phases may have used manual shell-based deployment assets.
+- The current branch treats GitHub Actions workflow definitions and CI/CD contract documents as the active source of operational truth for Phase 2.
+- Future Docker Swarm deployment assets will be introduced in a later phase rather than inferred from older manual-deployment notes.
 
 ## 8. Deployment Direction (Later Phases)
 
@@ -252,6 +255,7 @@ Optional future deployment variables:
 - runs Trivy filesystem scan on the repository
 - builds and scans both container images locally in CI
 - uploads the frontend build artifact and Trivy filesystem report
+- does not generate a deployable Swarm delivery contract artifact
 - does not log in to Docker Hub
 - does not push any image tags
 
@@ -263,6 +267,7 @@ Optional future deployment variables:
 - pushes exactly two tags per image:
   - `sha-<shortsha>`
   - `branch-main`
+- uploads the `swarm-delivery-contract` artifact for future Docker Swarm CD consumption
 
 Operational expectations:
 
@@ -291,7 +296,7 @@ Phase 2 CI now produces explicit evidence artifacts intended for grading, report
   - backend image metadata JSON
   - backend Trivy image JSON report
   - backend CycloneDX SBOM
-- `swarm-delivery-contract`
+- `swarm-delivery-contract` on `push` to `main` only
   - `release-manifest.json` with exact immutable frontend/backend image refs for future CD
   - `swarm-deployment-inputs.env` with shell-friendly deployment variables
 

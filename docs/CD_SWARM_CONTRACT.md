@@ -50,7 +50,9 @@ Allowed for human traceability only:
 
 ## CI Output Contract
 
-The CI workflow generates an artifact named `swarm-delivery-contract`.
+On `push` to `main`, the CI workflow generates an artifact named `swarm-delivery-contract`.
+
+On `pull_request` validation runs, this artifact is intentionally **not** produced, because PR runs do not push the immutable images to Docker Hub and therefore do not create a deployable CD handoff.
 
 Contents:
 
@@ -65,7 +67,7 @@ The CI workflow also generates per-service evidence artifacts:
 - `image-evidence-frontend`
 - `image-evidence-backend`
 
-These remain useful for audit and report evidence, but the primary future CD handoff artifact is `swarm-delivery-contract`.
+These remain useful for audit and report evidence, but the primary future CD handoff artifact on `main` push runs is `swarm-delivery-contract`.
 
 ## Expected Future CD Consumption Path
 

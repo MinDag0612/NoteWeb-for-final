@@ -29,7 +29,7 @@ This document summarizes the current branch state for review, demo preparation, 
 
 ### Step 9
 
-- CI now emits a `swarm-delivery-contract` artifact
+- CI now emits a `swarm-delivery-contract` artifact on `push` to `main`
 - future Docker Swarm CD secret contract is documented
 - immutable `sha-*` image consumption is explicitly defined
 - no live deploy job has been added yet
@@ -53,7 +53,7 @@ Primary CI artifacts expected from GitHub Actions:
 - `trivy-fs-report`
 - `image-evidence-frontend`
 - `image-evidence-backend`
-- `swarm-delivery-contract`
+- `swarm-delivery-contract` on `push` to `main`
 
 ## What Is Intentionally Not Done Yet
 
