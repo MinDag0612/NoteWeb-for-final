@@ -4,34 +4,28 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
-WORKDIR /wheels
+WORKDIR /install
 
-COPY backend/requirements.txt ./requirements.txt
-RUN python -m pip install --upgrade pip setuptools wheel && \
-    pip wheel --wheel-dir /wheels -r requirements.txt
+COPY backend/requirements.txt /tmp/requirements.txt
+RUN python -m pip install --no-cache-dir --prefix=/install -r /tmp/requirements.txt && \
+    rm -rf /root/.cache /tmp/requirements.txt
 
 FROM python:3.10.20-slim-bookworm AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    VENV_PATH=/opt/venv \
-    PATH="/opt/venv/bin:${PATH}"
+    PYTHONPATH="/install/lib/python3.10/site-packages"
 
 WORKDIR /app
 
-RUN python -m venv "${VENV_PATH}" && \
-    groupadd --system appuser && \
+RUN groupadd --system appuser && \
     useradd --system --gid appuser --home-dir /app --create-home appuser
 
-COPY backend/requirements.txt /tmp/requirements.txt
-COPY --from=builder /wheels /wheels
-RUN "${VENV_PATH}/bin/pip" install --no-cache-dir --no-index --find-links=/wheels -r /tmp/requirements.txt && \
-    "${VENV_PATH}/bin/pip" uninstall -y pip setuptools wheel || true && \
-    rm -rf /wheels /tmp/requirements.txt /root/.cache "${VENV_PATH}/bin/pip"*
+COPY --from=builder /install /install
 COPY --chown=appuser:appuser backend ./backend
 
 USER appuser
 
 EXPOSE 8000
 
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
