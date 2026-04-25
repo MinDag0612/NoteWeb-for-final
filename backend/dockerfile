@@ -1,17 +1,36 @@
-# 1. Python base image
-FROM python:3.10
+FROM python:3.10.20-slim-bookworm AS builder
 
-# 2. Set working directory
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    VENV_PATH=/opt/venv
+
 WORKDIR /app
 
-# 3. Copy requirements file
+RUN python -m venv "${VENV_PATH}"
+ENV PATH="${VENV_PATH}/bin:${PATH}"
+
 COPY backend/requirements.txt .
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install -r requirements.txt
 
-# 4. Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+FROM python:3.10.20-slim-bookworm AS runtime
 
-# 5. Copy backend source code
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    VENV_PATH=/opt/venv \
+    PATH="/opt/venv/bin:${PATH}"
+
+WORKDIR /app
+
+RUN groupadd --system appuser && \
+    useradd --system --gid appuser --home-dir /app --create-home appuser
+
+COPY --from=builder /opt/venv /opt/venv
 COPY backend ./backend
 
-# 6. Run server
+USER appuser
+
+EXPOSE 8000
+
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
