@@ -29,7 +29,8 @@ Browser (React SPA)
 - Frontend: React, React Router, Bootstrap
 - Backend: FastAPI, Gunicorn, Uvicorn, Python 3
 - Database: MongoDB Atlas
-- Infra (deployment phases): Ubuntu, Nginx, systemd
+- CI/CD: GitHub Actions, Docker Hub, Trivy
+- Target deployment architecture: Tier 4 Docker Swarm on Ubuntu-based cloud nodes
 
 ## 4. Repository Structure
 
@@ -117,16 +118,28 @@ No real credentials are committed to this repository.
   - Prints clear step-by-step logs.
 - `scripts/deploy.sh`: deployment-oriented script used in later manual deployment steps.
 
-## 8. Deployment Notes (High Level for Later Phases)
+## 8. Deployment Direction (Later Phases)
 
-Later phases will deploy this project on Ubuntu using Nginx + systemd.
+Earlier deployment notes in this repository may reference `Nginx + systemd` from a previous manual-deployment phase.
 
-- Nginx serves the built React frontend and reverse-proxies `/api` to FastAPI.
-- FastAPI runs as a systemd service (`deploy/backend.service`) using Gunicorn/Uvicorn worker.
-- Environment values are loaded from `.env` on the server.
-- Deployment evidence and screenshots are stored in `/docs`.
+The current final-project target architecture is:
 
-Detailed deployment walkthrough is in `deploy/Deploy-step.md`.
+- Tier 4 Docker Swarm
+- multi-node cluster
+- immutable container deployment using `sha-*` image tags from CI
+
+At the current Phase 2 / Step 9 boundary:
+
+- CI is the implemented source of truth
+- CD to Swarm is not yet live
+- Swarm stack manifests and production rollout logic are intentionally deferred to the next step
+
+Legacy notes remain useful as historical context, but they are not the final deployment architecture for the final project.
+
+Current CI-to-CD preparation docs:
+
+- [`docs/CI_EVIDENCE_MAP.md`](docs/CI_EVIDENCE_MAP.md)
+- [`docs/CD_SWARM_CONTRACT.md`](docs/CD_SWARM_CONTRACT.md)
 
 ## 9. Git Workflow and Collaboration Policy
 
@@ -171,6 +184,20 @@ Notes:
 
 - `DOCKERHUB_TOKEN` should be a scoped access token, not the Docker Hub account password.
 - Pull request validation does not push images, so Docker Hub secrets are only required for `push` runs on `main`.
+
+Reserved secret contract for future Docker Swarm CD:
+
+- `SWARM_MANAGER_HOST`: public DNS name or IP of the Swarm manager
+- `SWARM_MANAGER_USER`: SSH user used by the deployment workflow
+- `SWARM_MANAGER_SSH_KEY`: private key used by GitHub Actions to access the manager
+- `SWARM_MANAGER_KNOWN_HOSTS`: pinned host keys for safe SSH host verification
+
+Optional future deployment variables:
+
+- `SWARM_MANAGER_PORT`
+- `SWARM_STACK_NAME`
+- `DEPLOY_ENVIRONMENT`
+- `APP_DOMAIN`
 
 ## 12. Expected CI Behavior
 
@@ -220,7 +247,11 @@ Phase 2 CI now produces explicit evidence artifacts intended for grading, report
   - backend image metadata JSON
   - backend Trivy image JSON report
   - backend CycloneDX SBOM
+- `swarm-delivery-contract`
+  - `release-manifest.json` with exact immutable frontend/backend image refs for future CD
+  - `swarm-deployment-inputs.env` with shell-friendly deployment variables
 
 Artifact-to-rubric mapping and report guidance are documented in [`docs/CI_EVIDENCE_MAP.md`](docs/CI_EVIDENCE_MAP.md).
+Future CD secret and image-consumption rules are documented in [`docs/CD_SWARM_CONTRACT.md`](docs/CD_SWARM_CONTRACT.md).
 
 
