@@ -26,7 +26,8 @@ RUN python -m venv "${VENV_PATH}" && \
 COPY backend/requirements.txt /tmp/requirements.txt
 COPY --from=builder /wheels /wheels
 RUN "${VENV_PATH}/bin/pip" install --no-cache-dir --no-index --find-links=/wheels -r /tmp/requirements.txt && \
-    rm -rf /wheels /tmp/requirements.txt
+    "${VENV_PATH}/bin/pip" uninstall -y pip setuptools wheel || true && \
+    rm -rf /wheels /tmp/requirements.txt /root/.cache "${VENV_PATH}/bin/pip"*
 COPY --chown=appuser:appuser backend ./backend
 
 USER appuser

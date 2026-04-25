@@ -28,6 +28,16 @@ The following remain blocking with no exception file:
 - source-repo secrets
 - misconfiguration findings outside explicit Trivy suppression
 
+## Image scan policy
+
+Container image scans still block on `HIGH` and `CRITICAL` findings, but they use Trivy's `ignore-unfixed` policy.
+
+This is intentional:
+
+- fixable runtime/image vulnerabilities should continue to fail CI
+- findings with no vendor patch yet should be recorded and monitored, but they should not permanently block delivery when the project already uses the smallest practical upstream base image
+- this keeps the gate actionable instead of trapping the pipeline on upstream Debian or transitive package issues with no remediation path yet
+
 ## Exit plan
 
 This exception should be removed by one of these approaches:

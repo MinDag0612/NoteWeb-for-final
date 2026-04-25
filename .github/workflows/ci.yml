@@ -197,6 +197,7 @@ jobs:
           image-ref: ${{ steps.image-vars.outputs.sha_tag }}
           scanners: vuln,secret
           severity: HIGH,CRITICAL
+          ignore-unfixed: true
           format: table
           exit-code: "1"
 
