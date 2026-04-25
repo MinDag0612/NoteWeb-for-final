@@ -199,4 +199,8 @@ Operational expectations:
 - The immutable tag to be consumed by future CD or Docker Swarm deployment is `sha-*`.
 - The `branch-*` tag exists for operator traceability and quick human lookup, not as the primary deployment identifier.
 
+Security exception note:
+
+- Source-repo Trivy enforcement uses a path-scoped exception file for legacy CRA build-time findings in `frontend/package-lock.json`. The rationale and exit plan are documented in [`SECURITY_RISK_ACCEPTANCE.md`](SECURITY_RISK_ACCEPTANCE.md).
+
 

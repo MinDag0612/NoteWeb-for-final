@@ -124,6 +124,7 @@ jobs:
           severity: HIGH,CRITICAL
           format: table
           exit-code: "1"
+          trivyignores: .trivyignore.yaml
 
   docker-images:
     name: Docker Images (${{ matrix.service }})
