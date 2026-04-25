@@ -72,3 +72,12 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Pytest cache
+.pytest_cache/
+pytest-cache-files-*/
+
+# Personal notes & temp files
+*.pdf
+*.txt
+pdf2txt.py
+PLAN.md

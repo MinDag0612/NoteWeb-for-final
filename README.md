@@ -137,4 +137,66 @@ The intended workflow for this repository:
 - Every PR must include a clear description and at least one reviewer approval.
 - Branch protection rules are enabled on `main` (no direct push, no force push).
 
+## 10. CI Image Publishing Contract
+
+Phase 2 currently uses GitHub Actions as the CI system of record. The workflow file is [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
+Docker Hub repositories used by CI:
+
+- `nguyenhongphu1/noteweb-frontend`
+- `nguyenhongphu1/noteweb-backend`
+
+Image tagging strategy:
+
+- Primary deployment tag: `sha-<shortsha>`
+- Traceability tag: `branch-<sanitized-branch>`
+- `latest` is intentionally not used as a deployment contract
+- Release-style tags such as `vX.Y.Z` are reserved for a later release flow and are not published by the current workflow
+
+Examples:
+
+- `nguyenhongphu1/noteweb-frontend:sha-dee566c`
+- `nguyenhongphu1/noteweb-frontend:branch-feature-module2-ci`
+- `nguyenhongphu1/noteweb-backend:sha-dee566c`
+- `nguyenhongphu1/noteweb-backend:branch-main`
+
+## 11. Required GitHub Secrets
+
+The current CI workflow requires these repository secrets for image publishing:
+
+- `DOCKERHUB_USERNAME`: Docker Hub account name used for `docker login`
+- `DOCKERHUB_TOKEN`: Docker Hub access token used by GitHub Actions
+
+Notes:
+
+- `DOCKERHUB_TOKEN` should be a scoped access token, not the Docker Hub account password.
+- Pull request validation does not push images, so Docker Hub secrets are only required for `push` runs on `main`.
+
+## 12. Expected CI Behavior
+
+`pull_request` targeting `main`:
+
+- runs frontend lint, test, and production build
+- runs backend dependency install, `ruff`, and `pytest`
+- runs Trivy filesystem scan on the repository
+- builds and scans both container images locally in CI
+- uploads the frontend build artifact and Trivy filesystem report
+- does not log in to Docker Hub
+- does not push any image tags
+
+`push` to `main`:
+
+- runs the same validation and security stages as PR
+- builds and scans both container images
+- logs in to Docker Hub using repository secrets
+- pushes exactly two tags per image:
+  - `sha-<shortsha>`
+  - `branch-main`
+
+Operational expectations:
+
+- Any `HIGH` or `CRITICAL` findings from Trivy cause the security stage to fail.
+- The immutable tag to be consumed by future CD or Docker Swarm deployment is `sha-*`.
+- The `branch-*` tag exists for operator traceability and quick human lookup, not as the primary deployment identifier.
+
 
