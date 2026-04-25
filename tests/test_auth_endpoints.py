@@ -47,7 +47,7 @@ def test_login_returns_access_token_for_valid_local_user(seeded_client):
 def test_protected_notes_endpoint_requires_authorization(client):
     response = client.get("/get-notes")
 
-    assert response.status_code == 403
+    assert response.status_code == 401
 
 
 def test_get_notes_returns_only_authenticated_users_notes(seeded_client, seeded_app):

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 
@@ -35,12 +35,12 @@ function checkAcc(idToken, navigator) {
 function GoogleLogin() {
   const navigator = useNavigate();
 
-  const handleCredentialResponse = (response) => {
+  const handleCredentialResponse = useCallback((response) => {
     const idToken = response.credential;
     
     checkAcc(idToken, navigator)
 
-  };
+  }, [navigator]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -61,15 +61,7 @@ function GoogleLogin() {
     }, 100);
 
     return () => clearInterval(interval);
-  }, []);
-
-  const handleGoogleLogin = () => {
-    if (!window.google || !window.google.accounts) return;
-
-    localStorage.removeItem("gg-key");
-    window.google.accounts.id.disableAutoSelect();
-    window.google.accounts.id.prompt();
-  };
+  }, [handleCredentialResponse]);
 
   return <div id="google-btn"></div>;
 }

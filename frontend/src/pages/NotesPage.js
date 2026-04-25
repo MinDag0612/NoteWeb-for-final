@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import NoteCard from "../components/NoteCard";
 import "./NotesPageStyle.css";
 import { useNavigate } from "react-router-dom";
@@ -24,8 +24,6 @@ export default function NotesPage({ token }) {
         const err = await res.json();
         throw new Error(err.detail || "Delete not complete !!");
       }
-
-      const data = await res.json();
 
       setNotes((prev) => prev.filter((n) => n.noteId !== noteId));
     } catch (error) {
@@ -53,7 +51,7 @@ export default function NotesPage({ token }) {
     setNotes((prev) => [...prev, data.note]);
   };
 
-  const fetchNotes = async () => {
+  const fetchNotes = useCallback(async () => {
       try {
         const res = await fetch(process.env.REACT_APP_API_NOTES, {
           headers: {
@@ -88,13 +86,13 @@ export default function NotesPage({ token }) {
         console.error("Fetch notes error:", err);
         alert(err.message);
       }
-    };
+    }, [token, navigator]);
 
   useEffect(() => {
     if (!token) return;
 
     fetchNotes();
-  }, [token, navigator]);
+  }, [token, fetchNotes]);
 
   return (
     <>

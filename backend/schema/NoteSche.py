@@ -1,5 +1,7 @@
 class Note:
-    default_note = lambda userId, create_at: Note(userId, "Title", "Content", [], create_at)
+    @staticmethod
+    def default_note(userId, create_at):
+        return Note(userId, "Title", "Content", [], create_at)
     
     def __init__(self, userId: str, title: str, content: str, img: list[str], creatAt: str):
         self.userId = userId
