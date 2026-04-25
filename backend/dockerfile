@@ -2,17 +2,13 @@ FROM python:3.10.20-slim-bookworm AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    VENV_PATH=/opt/venv
+    PIP_NO_CACHE_DIR=1
 
-WORKDIR /app
+WORKDIR /wheels
 
-RUN python -m venv "${VENV_PATH}"
-ENV PATH="${VENV_PATH}/bin:${PATH}"
-
-COPY backend/requirements.txt .
-RUN pip install --upgrade pip setuptools wheel && \
-    pip install -r requirements.txt
+COPY backend/requirements.txt ./requirements.txt
+RUN python -m pip install --upgrade pip setuptools wheel && \
+    pip wheel --wheel-dir /wheels -r requirements.txt
 
 FROM python:3.10.20-slim-bookworm AS runtime
 
@@ -23,11 +19,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-RUN groupadd --system appuser && \
+RUN python -m venv "${VENV_PATH}" && \
+    groupadd --system appuser && \
     useradd --system --gid appuser --home-dir /app --create-home appuser
 
-COPY --from=builder /opt/venv /opt/venv
-COPY backend ./backend
+COPY backend/requirements.txt /tmp/requirements.txt
+COPY --from=builder /wheels /wheels
+RUN "${VENV_PATH}/bin/pip" install --no-cache-dir --no-index --find-links=/wheels -r /tmp/requirements.txt && \
+    rm -rf /wheels /tmp/requirements.txt
+COPY --chown=appuser:appuser backend ./backend
 
 USER appuser
 
