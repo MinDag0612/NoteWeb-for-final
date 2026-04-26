@@ -18,16 +18,33 @@ import cloudinary
 import cloudinary.uploader
 import os
 
+from opentelemetry import metrics
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
 from dotenv import load_dotenv
 load_dotenv()
 
 CLOUDY_NAME = os.getenv("CLOUDY_NAME")
 CLOUDY_API_KEY = os.getenv("CLOUDY_API_KEY")
 CLOUDY_SECRET = os.getenv("CLOUDY_SECRET")
-
 app = FastAPI(
     root_path="/api"
 )
+
+# Cấu hình OTLP Exporter để gửi dữ liệu về Collector
+otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4317")
+exporter = OTLPMetricExporter(endpoint=otlp_endpoint, insecure=True)
+
+# Thiết lập Meter Provider
+reader = PeriodicExportingMetricReader(exporter)
+provider = MeterProvider(metric_readers=[reader])
+metrics.set_meter_provider(provider)
+
+FastAPIInstrumentor.instrument_app(app)
+
 connDB = Conn()
 
 app.add_middleware(
