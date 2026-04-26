@@ -150,7 +150,7 @@ No real credentials are committed to this repository.
 
 ## 7. Repository Notes
 
-This branch now groups application source under `apps/`, local runtime wiring under `infra/`, project references under `docs/project/`, and helper tooling under `scripts/`.
+This branch now groups application source under `apps/`, local runtime wiring under `infra/`, and repository documentation under `docs/`.
 
 - Earlier project phases may have used manual shell-based deployment assets.
 - The current branch treats GitHub Actions workflow definitions, `infra/compose`, and CI/CD contract documents as the active source of operational truth for Phase 2.
@@ -178,7 +178,6 @@ Current CI-to-CD preparation docs:
 
 - [`docs/CI_EVIDENCE_MAP.md`](docs/CI_EVIDENCE_MAP.md)
 - [`docs/CD_SWARM_CONTRACT.md`](docs/CD_SWARM_CONTRACT.md)
-- [`docs/project/Final Project.pdf`](docs/project/Final%20Project.pdf)
 
 ## 9. Git Workflow and Collaboration Policy
 
