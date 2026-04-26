@@ -1,10 +1,28 @@
 services:
+  mongodb:
+      image: mongo:7
+      container_name: noteweb-mongodb
+      restart: unless-stopped
+      ports:
+        - "27017:27017"
+      environment:
+        MONGO_INITDB_ROOT_USERNAME: admin
+        MONGO_INITDB_ROOT_PASSWORD: admin123
+      volumes:
+        - mongo_data:/data/db
+        - ./mongo-init:/docker-entrypoint-initdb.d
+        - ./dump:/dump
+
   backend:
     build:
       context: ../..
       dockerfile: apps/backend/dockerfile
     ports:
       - "8000:8000"
+    environment:
+      MONGO_URI: mongodb://admin:admin123@mongodb:27017/
+    depends_on:
+      - mongodb
 
   frontend:
     build:
@@ -14,3 +32,6 @@ services:
       - "3000:80"
     depends_on:
       - backend
+
+volumes:
+  mongo_data:
