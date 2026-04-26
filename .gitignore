@@ -91,3 +91,6 @@ PLAN.md
 !docs/project/PLAN.md
 !docs/project/README-REACTJS.md
 !scripts/pdf2txt.py
+!apps/backend/requirements.txt
+!apps/backend/requirements-dev.txt
+!apps/frontend/public/robots.txt
