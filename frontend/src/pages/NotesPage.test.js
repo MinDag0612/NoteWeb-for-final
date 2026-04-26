@@ -157,4 +157,24 @@ describe("NotesPage", () => {
     });
     expect(sessionStorage.getItem("error")).toBe("Login session expired");
   });
+
+  test("alerts when creating a note fails", async () => {
+    global.fetch
+      .mockResolvedValueOnce(makeJsonResponse({ notes: [] }))
+      .mockResolvedValueOnce(
+        makeJsonResponse({ detail: "Create failed" }, { ok: false, status: 500 }),
+      );
+
+    render(<NotesPage token="token-123" />);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "+" }));
+
+    await waitFor(() => {
+      expect(window.alert).toHaveBeenCalledWith("Add note failed");
+    });
+  });
 });

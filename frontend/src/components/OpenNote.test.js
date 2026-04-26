@@ -129,4 +129,31 @@ describe("OpenNote", () => {
       newImages: [],
     });
   });
+
+  test("alerts the backend error when save fails", async () => {
+    global.fetch.mockResolvedValueOnce(
+      makeJsonResponse(
+        { detail: "Note not found" },
+        { ok: false, status: 404 },
+      ),
+    );
+
+    render(
+      <OpenNote
+        token="token-123"
+        noteId="note-missing"
+        title="Title"
+        content="Content"
+        img={[]}
+        onClose={jest.fn()}
+        onUpdateNote={jest.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /save/i }));
+
+    await waitFor(() => {
+      expect(window.alert).toHaveBeenCalledWith("Note not found");
+    });
+  });
 });

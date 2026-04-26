@@ -99,4 +99,13 @@ describe("LoginPage", () => {
     expect(sessionStorage.getItem("access_token")).toBeNull();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
+
+  test("shows and clears the session error banner on mount", () => {
+    sessionStorage.setItem("error", "Please login before !");
+
+    render(<LoginPage />);
+
+    expect(screen.getByText("Please login before !")).toBeInTheDocument();
+    expect(sessionStorage.getItem("error")).toBeNull();
+  });
 });

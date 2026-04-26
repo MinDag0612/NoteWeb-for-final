@@ -40,3 +40,51 @@ def test_login_google_rejects_invalid_google_token(
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid Google token"
+
+
+def test_login_google_returns_404_when_verified_google_user_is_missing(
+    seeded_client, seeded_app, monkeypatch
+):
+    monkeypatch.setattr(
+        seeded_app,
+        "verify_google_token",
+        lambda credential: {
+            "google_id": "google-999",
+            "email": "missing-google@example.com",
+            "name": "Missing User",
+            "picture": None,
+            "email_verified": True,
+        },
+    )
+
+    response = seeded_client.post(
+        "/login-google",
+        json={"credential": "valid-google-token"},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "User not found, please register first"
+
+
+def test_login_google_rejects_provider_mismatch_for_existing_local_user(
+    seeded_client, seeded_app, monkeypatch
+):
+    monkeypatch.setattr(
+        seeded_app,
+        "verify_google_token",
+        lambda credential: {
+            "google_id": "google-000",
+            "email": "local@example.com",
+            "name": "CI Local User",
+            "picture": None,
+            "email_verified": True,
+        },
+    )
+
+    response = seeded_client.post(
+        "/login-google",
+        json={"credential": "valid-google-token"},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Please login with local provider"
