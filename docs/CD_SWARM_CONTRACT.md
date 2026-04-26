@@ -47,12 +47,15 @@ Forbidden as primary deployment identifiers:
 Allowed for human traceability only:
 
 - `branch-<sanitized-branch>`
+- release-style tags such as `v1.2.0`
 
 ## CI Output Contract
 
 On `push` to `main`, the CI workflow generates an artifact named `swarm-delivery-contract`.
 
 On `pull_request` validation runs, this artifact is intentionally **not** produced, because PR runs do not push the immutable images to Docker Hub and therefore do not create a deployable CD handoff.
+
+On versioned release tag runs such as `v1.2.0`, the CI workflow may publish `sha-*` plus the matching `v*` image tag to Docker Hub, but the Swarm deployment handoff still remains anchored to the immutable `sha-*` identifier rather than the release tag.
 
 Contents:
 

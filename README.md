@@ -209,9 +209,9 @@ Docker Hub repositories used by CI:
 Image tagging strategy:
 
 - Primary deployment tag: `sha-<shortsha>`
-- Traceability tag: `branch-<sanitized-branch>`
+- Traceability tag on branch builds: `branch-<sanitized-branch>`
+- Release tag on versioned releases: `vX.Y.Z`
 - `latest` is intentionally not used as a deployment contract
-- Release-style tags such as `vX.Y.Z` are reserved for a later release flow and are not published by the current workflow
 
 Examples:
 
@@ -219,6 +219,7 @@ Examples:
 - `nguyenhongphu1/noteweb-frontend:branch-feature-module2-ci`
 - `nguyenhongphu1/noteweb-backend:sha-dee566c`
 - `nguyenhongphu1/noteweb-backend:branch-main`
+- `nguyenhongphu1/noteweb-frontend:v1.2.0`
 
 ## 11. Required GitHub Secrets
 
@@ -230,7 +231,10 @@ The current CI workflow requires these repository secrets for image publishing:
 Notes:
 
 - `DOCKERHUB_TOKEN` should be a scoped access token, not the Docker Hub account password.
-- Pull request validation does not push images, so Docker Hub secrets are only required for `push` runs on `main`.
+- Pull request validation does not push images.
+- Docker Hub secrets are required only for publish-capable runs:
+  - `push` to `main`
+  - `push` of a Git tag matching `v*`
 
 Reserved secret contract for future Docker Swarm CD:
 
@@ -259,6 +263,14 @@ Optional future deployment variables:
 - does not log in to Docker Hub
 - does not push any image tags
 
+`push` to a non-`main` branch:
+
+- runs the same validation and security stages as PR
+- builds and scans both container images
+- does not log in to Docker Hub
+- does not push image tags
+- still records local image evidence for report and audit use
+
 `push` to `main`:
 
 - runs the same validation and security stages as PR
@@ -269,11 +281,22 @@ Optional future deployment variables:
   - `branch-main`
 - uploads the `swarm-delivery-contract` artifact for future Docker Swarm CD consumption
 
+`push` of a Git tag matching `v*`:
+
+- runs the same validation and security stages as PR
+- builds and scans both container images
+- logs in to Docker Hub using repository secrets
+- pushes exactly two tags per image:
+  - `sha-<shortsha>`
+  - the matching release tag such as `v1.2.0`
+- does not publish `swarm-delivery-contract`, because the CD handoff contract remains tied to the immutable `sha-*` flow on `main`
+
 Operational expectations:
 
 - Any `HIGH` or `CRITICAL` findings from Trivy cause the security stage to fail.
 - The immutable tag to be consumed by future CD or Docker Swarm deployment is `sha-*`.
 - The `branch-*` tag exists for operator traceability and quick human lookup, not as the primary deployment identifier.
+- The `v*` tag exists as a release-style publishing label, not as a replacement for the immutable `sha-*` deployment contract.
 
 Security exception note:
 

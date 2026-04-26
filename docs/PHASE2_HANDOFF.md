@@ -25,6 +25,7 @@ This document summarizes the current branch state for review, demo preparation, 
 - frontend build artifact is preserved
 - filesystem Trivy report is preserved
 - image-level Trivy reports, SBOMs, and metadata are preserved
+- image metadata now captures branch traceability tags and release tags where applicable
 - evidence-to-rubric mapping is documented
 
 ### Step 9
@@ -55,6 +56,13 @@ Primary CI artifacts expected from GitHub Actions:
 - `image-evidence-backend`
 - `swarm-delivery-contract` on `push` to `main`
 
+Current image publishing behavior:
+
+- pull requests to `main`: validate only, no registry push
+- branch pushes outside `main`: validate only, no registry push
+- `push` to `main`: publish `sha-*` and `branch-main`
+- `push` of a Git tag matching `v*`: publish `sha-*` and the matching release tag
+
 ## What Is Intentionally Not Done Yet
 
 - no real cloud infrastructure provisioning
@@ -73,7 +81,8 @@ Before creating or updating a PR:
 2. Re-run local CI validation where feasible.
 3. Verify README and docs still match the actual workflow behavior.
 4. Confirm the immutable image tag contract remains `sha-*`.
-5. Confirm no secrets or environment-specific credentials were committed.
+5. Confirm branch, `main`, and release-tag publishing behavior still match the intended policy.
+6. Confirm no secrets or environment-specific credentials were committed.
 
 ## Demo Preparation Notes
 

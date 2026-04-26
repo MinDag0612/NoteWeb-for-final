@@ -27,7 +27,9 @@ Add any relevant notes about skipped checks or environment limits.
 ## CI Expectations
 
 - [ ] PR to `main` should validate but not push images
+- [ ] branch pushes outside `main` should validate but not push images
 - [ ] `push` to `main` should publish `sha-*` and `branch-*` tags
+- [ ] `push` of a `v*` Git tag should publish `sha-*` and the matching release tag
 - [ ] Security gates for `HIGH` and `CRITICAL` findings remain enforced
 - [ ] `sha-*` remains the primary deployment identifier
 

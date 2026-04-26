@@ -21,7 +21,8 @@ It does **not** claim that CD, Docker Swarm deployment, domain/HTTPS, or monitor
   - `nguyenhongphu1/noteweb-frontend`
   - `nguyenhongphu1/noteweb-backend`
 - Primary immutable deployment tag: `sha-<shortsha>`
-- Traceability tag: `branch-<sanitized-branch>`
+- Branch traceability tag on branch builds: `branch-<sanitized-branch>`
+- Release tag on versioned releases: `vX.Y.Z`
 
 ## Evidence Produced by CI
 
@@ -63,7 +64,8 @@ Each artifact contains:
 - `<service>-image-metadata.json`
   - image repository
   - immutable `sha-*` tag
-  - traceability `branch-*` tag
+  - traceability `branch-*` tag when the source ref is a branch build
+  - release `v*` tag when the source ref is a Git release tag
   - Git SHA, ref, workflow, run ID
 - `<service>-trivy-image-report.json`
   - machine-readable Trivy image scan report
@@ -92,7 +94,7 @@ Why this matters:
   - `trivy-fs-report`
   - Trivy image gate in `docker-images`
 - Container build and registry push with explicit tags:
-  - `sha-*` and `branch-*` tags recorded in image metadata
+  - `sha-*`, `branch-*`, and `v*` tags recorded in image metadata according to the source ref
 
 ### Section IV.5 Documentation and Evidence
 
@@ -112,6 +114,9 @@ Show these workflow outcomes:
 - image build completed for both services
 - image scan evidence generated
 - immutable image tags generated
+- branch pushes validate image creation without publishing feature-branch artifacts
+- `push` to `main` publishes `sha-*` and `branch-main`
+- release tags such as `v1.2.0` publish `sha-*` and the matching `v*` release tag
 
 ### Section V.4 Delivery Preparation
 
@@ -120,6 +125,7 @@ Even before CD is added, the CI artifacts already prove:
 - which exact image version should be deployed
 - how production should consume the immutable `sha-*` tag
 - that deployment metadata is machine-readable and reproducible
+- that release-style tags can be published without changing the primary `sha-*` deployment contract
 
 ### Section V.5 Verification Support
 
@@ -132,7 +138,8 @@ Recommended places to cite these artifacts in the technical report:
 - **CI/CD Pipeline Design**
   - frontend build artifact
   - cache strategy
-  - immutable image tag strategy
+  - immutable `sha-*` deployment strategy
+  - branch traceability tags and `v*` release publishing flow
 - **Deployment & Orchestration**
   - image metadata JSON as the future Swarm deployment contract
 - **Monitoring, Observability & Lessons Learned**
