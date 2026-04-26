@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import HomePage from "./HomePage";
+import HomePage from "../../pages/HomePage";
 
 const mockNavigate = jest.fn();
 
@@ -7,7 +7,7 @@ jest.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }), { virtual: true });
 
-jest.mock("./NotesPage", () => ({ token }) => (
+jest.mock("../../pages/NotesPage", () => ({ token }) => (
   <div data-testid="notes-page">Notes token: {token}</div>
 ));
 

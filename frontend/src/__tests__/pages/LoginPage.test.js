@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import LoginPage from "./LoginPage";
+import LoginPage from "../../pages/LoginPage";
 
 const mockNavigate = jest.fn();
 
@@ -7,7 +7,7 @@ jest.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }), { virtual: true });
 
-jest.mock("../components/GoogleLogin", () => () => (
+jest.mock("../../components/GoogleLogin", () => () => (
   <div data-testid="google-login">Google Login</div>
 ));
 

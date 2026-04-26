@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import OpenNote from "./OpenNote";
+import OpenNote from "../../components/OpenNote";
 
-jest.mock("../assets/RemoveIcon.svg", () => ({
+jest.mock("../../assets/RemoveIcon.svg", () => ({
   ReactComponent: (props) => (
     <button type="button" aria-label="Remove image" {...props} />
   ),

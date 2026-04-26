@@ -1,13 +1,13 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import NoteCard from "./NoteCard";
+import NoteCard from "../../components/NoteCard";
 
-jest.mock("../assets/RemoveIcon.svg", () => ({
+jest.mock("../../assets/RemoveIcon.svg", () => ({
   ReactComponent: (props) => (
     <button type="button" aria-label="Remove note" {...props} />
   ),
 }));
 
-jest.mock("./OpenNote", () => (props) => (
+jest.mock("../../components/OpenNote", () => (props) => (
   <div data-testid="open-note-modal">
     Open note modal for {props.title}
   </div>

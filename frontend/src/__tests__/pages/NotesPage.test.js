@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import NotesPage from "./NotesPage";
+import NotesPage from "../../pages/NotesPage";
 
 const mockNavigate = jest.fn();
 
@@ -7,7 +7,7 @@ jest.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }), { virtual: true });
 
-jest.mock("../components/NoteCard", () => (props) => (
+jest.mock("../../components/NoteCard", () => (props) => (
   <div data-testid={`note-card-${props.noteId}`}>
     <span>{props.title}</span>
     <button type="button" onClick={props.onRemove}>
