@@ -1,0 +1,59 @@
+name: Frontend CI Reusable
+
+on:
+  workflow_call:
+    inputs:
+      node_version:
+        required: true
+        type: string
+      artifact_retention_days:
+        required: true
+        type: string
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: frontend
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Lint frontend
+        run: npm run lint
+
+      - name: Test frontend
+        run: npm run test:ci -- --runInBand
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Upload frontend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/build
+          if-no-files-found: error
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - name: Summarize frontend evidence
+        run: |
+          {
+            echo "### Frontend CI Evidence"
+            echo "- Artifact: \`frontend-build\`"
+            echo "- Purpose: reproducible frontend build output for report, demo, and future CD handoff"
+          } >> "${GITHUB_STEP_SUMMARY}"

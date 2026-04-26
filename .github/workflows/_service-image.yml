@@ -1,0 +1,237 @@
+name: Service Image Reusable
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        required: true
+        type: string
+      image:
+        required: true
+        type: string
+      dockerfile:
+        required: true
+        type: string
+      short_sha:
+        required: true
+        type: string
+      branch_slug:
+        required: true
+        type: string
+      publish_mode:
+        required: true
+        type: string
+      release_tag_name:
+        required: true
+        type: string
+      artifact_retention_days:
+        required: true
+        type: string
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_TOKEN:
+        required: false
+    outputs:
+      image_repository:
+        description: Image repository name.
+        value: ${{ jobs.image.outputs.image_repository }}
+      immutable_tag:
+        description: Immutable image tag.
+        value: ${{ jobs.image.outputs.immutable_tag }}
+      traceability_tag:
+        description: Branch traceability image tag.
+        value: ${{ jobs.image.outputs.traceability_tag }}
+      release_tag:
+        description: Release image tag for version-tag builds.
+        value: ${{ jobs.image.outputs.release_tag }}
+      image_ref:
+        description: Full immutable image reference.
+        value: ${{ jobs.image.outputs.image_ref }}
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    outputs:
+      image_repository: ${{ steps.image-vars.outputs.image_repository }}
+      immutable_tag: ${{ steps.image-vars.outputs.immutable_tag }}
+      traceability_tag: ${{ steps.image-vars.outputs.traceability_tag }}
+      release_tag: ${{ steps.image-vars.outputs.release_tag }}
+      image_ref: ${{ steps.image-vars.outputs.image_ref }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Derive image tags and publish policy
+        id: image-vars
+        run: |
+          sha_tag="${{ inputs.image }}:sha-${{ inputs.short_sha }}"
+          branch_tag=""
+          release_tag=""
+          should_push="false"
+
+          case "${{ inputs.publish_mode }}" in
+            release)
+              release_tag="${{ inputs.image }}:${{ inputs.release_tag_name }}"
+              should_push="true"
+              {
+                echo "build_tags<<EOF"
+                echo "${sha_tag}"
+                echo "${release_tag}"
+                echo "EOF"
+              } >> "${GITHUB_OUTPUT}"
+              {
+                echo "push_tags<<EOF"
+                echo "${sha_tag}"
+                echo "${release_tag}"
+                echo "EOF"
+              } >> "${GITHUB_OUTPUT}"
+              ;;
+            *)
+              branch_tag="${{ inputs.image }}:branch-${{ inputs.branch_slug }}"
+              {
+                echo "build_tags<<EOF"
+                echo "${sha_tag}"
+                echo "${branch_tag}"
+                echo "EOF"
+              } >> "${GITHUB_OUTPUT}"
+
+              if [[ "${{ inputs.publish_mode }}" == "main" ]]; then
+                should_push="true"
+                {
+                  echo "push_tags<<EOF"
+                  echo "${sha_tag}"
+                  echo "${branch_tag}"
+                  echo "EOF"
+                } >> "${GITHUB_OUTPUT}"
+              else
+                {
+                  echo "push_tags<<EOF"
+                  echo "EOF"
+                } >> "${GITHUB_OUTPUT}"
+              fi
+              ;;
+          esac
+
+          echo "image_repository=${{ inputs.image }}" >> "${GITHUB_OUTPUT}"
+          echo "immutable_tag=sha-${{ inputs.short_sha }}" >> "${GITHUB_OUTPUT}"
+          echo "traceability_tag=${branch_tag##*:}" >> "${GITHUB_OUTPUT}"
+          echo "release_tag=${release_tag##*:}" >> "${GITHUB_OUTPUT}"
+          echo "image_ref=${sha_tag}" >> "${GITHUB_OUTPUT}"
+          echo "should_push=${should_push}" >> "${GITHUB_OUTPUT}"
+
+      - name: Log in to Docker Hub
+        if: steps.image-vars.outputs.should_push == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build ${{ inputs.service }} image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ inputs.dockerfile }}
+          load: true
+          push: false
+          tags: ${{ steps.image-vars.outputs.build_tags }}
+          cache-from: type=gha,scope=${{ inputs.service }}
+          cache-to: type=gha,mode=max,scope=${{ inputs.service }}
+
+      - name: Prepare evidence workspace
+        run: mkdir -p artifacts
+
+      - name: Record ${{ inputs.service }} image metadata
+        run: |
+          cat > "artifacts/${{ inputs.service }}-image-metadata.json" <<EOF
+          {
+            "service": "${{ inputs.service }}",
+            "image_repository": "${{ steps.image-vars.outputs.image_repository }}",
+            "immutable_tag": "${{ steps.image-vars.outputs.immutable_tag }}",
+            "traceability_tag": "${{ steps.image-vars.outputs.traceability_tag }}",
+            "release_tag": "${{ steps.image-vars.outputs.release_tag }}",
+            "image_ref": "${{ steps.image-vars.outputs.image_ref }}",
+            "git_sha": "${{ github.sha }}",
+            "git_ref": "${{ github.ref }}",
+            "event_name": "${{ github.event_name }}",
+            "workflow": "${{ github.workflow }}",
+            "run_id": "${{ github.run_id }}",
+            "run_number": "${{ github.run_number }}"
+          }
+          EOF
+
+      - name: Generate Trivy ${{ inputs.service }} image report
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: image
+          image-ref: ${{ steps.image-vars.outputs.image_ref }}
+          scanners: vuln,secret
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          format: json
+          output: artifacts/${{ inputs.service }}-trivy-image-report.json
+          exit-code: "0"
+
+      - name: Generate CycloneDX SBOM for ${{ inputs.service }}
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: image
+          image-ref: ${{ steps.image-vars.outputs.image_ref }}
+          format: cyclonedx
+          output: artifacts/${{ inputs.service }}-sbom.cdx.json
+          exit-code: "0"
+
+      - name: Upload ${{ inputs.service }} image evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-evidence-${{ inputs.service }}
+          path: |
+            artifacts/${{ inputs.service }}-image-metadata.json
+            artifacts/${{ inputs.service }}-trivy-image-report.json
+            artifacts/${{ inputs.service }}-sbom.cdx.json
+          if-no-files-found: error
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - name: Scan ${{ inputs.service }} image with Trivy
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: image
+          image-ref: ${{ steps.image-vars.outputs.image_ref }}
+          scanners: vuln,secret
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          format: table
+          exit-code: "1"
+
+      - name: Summarize ${{ inputs.service }} image evidence
+        if: always()
+        run: |
+          {
+            echo "### ${{ inputs.service }} Image Evidence"
+            echo "- Immutable deployment tag: \`${{ steps.image-vars.outputs.image_ref }}\`"
+            if [[ -n "${{ steps.image-vars.outputs.traceability_tag }}" ]]; then
+              echo "- Traceability tag: \`${{ steps.image-vars.outputs.traceability_tag }}\`"
+            fi
+            if [[ -n "${{ steps.image-vars.outputs.release_tag }}" ]]; then
+              echo "- Release tag: \`${{ steps.image-vars.outputs.release_tag }}\`"
+            fi
+            echo "- Artifact: \`image-evidence-${{ inputs.service }}\`"
+            echo "- Contents: Trivy JSON report, CycloneDX SBOM, deployment metadata JSON"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Push ${{ inputs.service }} image tags
+        if: steps.image-vars.outputs.should_push == 'true'
+        run: |
+          while IFS= read -r image_tag; do
+            if [[ -n "${image_tag}" ]]; then
+              docker image push "${image_tag}"
+            fi
+          done <<'EOF'
+          ${{ steps.image-vars.outputs.push_tags }}
+          EOF
