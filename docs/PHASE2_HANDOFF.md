@@ -41,6 +41,20 @@ Primary workflow:
 
 - [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
 
+Reusable workflow definitions:
+
+- [`.github/workflows/_frontend.yml`](../.github/workflows/_frontend.yml)
+- [`.github/workflows/_backend.yml`](../.github/workflows/_backend.yml)
+- [`.github/workflows/_security.yml`](../.github/workflows/_security.yml)
+- [`.github/workflows/_service-image.yml`](../.github/workflows/_service-image.yml)
+- [`.github/workflows/_delivery-contract.yml`](../.github/workflows/_delivery-contract.yml)
+
+Current CI structure:
+
+- `ci.yml` is the trigger and DAG orchestrator
+- service-specific logic is executed through reusable workflows
+- image policy is centralized through `prepare-context` plus the shared `_service-image.yml` workflow
+
 Evidence and contract docs:
 
 - [`docs/CI_EVIDENCE_MAP.md`](CI_EVIDENCE_MAP.md)

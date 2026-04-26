@@ -15,7 +15,16 @@ It does **not** claim that CD, Docker Swarm deployment, domain/HTTPS, or monitor
 
 ## Workflow Source of Truth
 
-- Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
+- Workflow entrypoint: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
+- Reusable workflow definitions:
+  - [`.github/workflows/_frontend.yml`](../.github/workflows/_frontend.yml)
+  - [`.github/workflows/_backend.yml`](../.github/workflows/_backend.yml)
+  - [`.github/workflows/_security.yml`](../.github/workflows/_security.yml)
+  - [`.github/workflows/_service-image.yml`](../.github/workflows/_service-image.yml)
+  - [`.github/workflows/_delivery-contract.yml`](../.github/workflows/_delivery-contract.yml)
+- Workflow shape:
+  - `ci.yml` is the orchestrator DAG
+  - service-specific CI logic is executed through reusable workflows
 - CI branch in progress: `feature/module2-ci`
 - Registry contract:
   - `nguyenhongphu1/noteweb-frontend`
@@ -30,6 +39,7 @@ It does **not** claim that CD, Docker Swarm deployment, domain/HTTPS, or monitor
 
 - Artifact name: `frontend-build`
 - Produced by job: `frontend-ci`
+- Implemented by reusable workflow: `_frontend.yml`
 - Contents: production-ready React build output from `frontend/build`
 - Why it matters:
   - proves the frontend build is reproducible
@@ -40,6 +50,7 @@ It does **not** claim that CD, Docker Swarm deployment, domain/HTTPS, or monitor
 
 - Artifact name: `trivy-fs-report`
 - Produced by job: `security-scan`
+- Implemented by reusable workflow: `_security.yml`
 - Contents: Trivy filesystem scan report in JSON format
 - Scan scope:
   - vulnerabilities
@@ -57,7 +68,12 @@ Artifact names:
 - `image-evidence-frontend`
 - `image-evidence-backend`
 
-Produced by job: `docker-images`
+Produced by jobs:
+
+- `frontend-image`
+- `backend-image`
+
+Implemented by reusable workflow: `_service-image.yml`
 
 Each artifact contains:
 
@@ -92,7 +108,7 @@ Why this matters:
   - `frontend-build`
 - Security scanning with fail gate:
   - `trivy-fs-report`
-  - Trivy image gate in `docker-images`
+  - Trivy image gate in `frontend-image` and `backend-image`
 - Container build and registry push with explicit tags:
   - `sha-*`, `branch-*`, and `v*` tags recorded in image metadata according to the source ref
 

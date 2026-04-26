@@ -12,7 +12,13 @@ Tài liệu này tóm tắt ngắn gọn phần CI đã được bổ sung trên
 
 ## File chính
 
-- Workflow CI: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
+- Workflow điều phối: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
+- Workflow reusable:
+  - [`.github/workflows/_frontend.yml`](../.github/workflows/_frontend.yml)
+  - [`.github/workflows/_backend.yml`](../.github/workflows/_backend.yml)
+  - [`.github/workflows/_security.yml`](../.github/workflows/_security.yml)
+  - [`.github/workflows/_service-image.yml`](../.github/workflows/_service-image.yml)
+  - [`.github/workflows/_delivery-contract.yml`](../.github/workflows/_delivery-contract.yml)
 - Tài liệu chi tiết hơn:
   - [`docs/CI_EVIDENCE_MAP.md`](CI_EVIDENCE_MAP.md)
   - [`docs/CD_SWARM_CONTRACT.md`](CD_SWARM_CONTRACT.md)
@@ -33,40 +39,59 @@ Tài liệu này tóm tắt ngắn gọn phần CI đã được bổ sung trên
 
 ## Luồng CI hiện tại
 
-1. `frontend-ci`
+`ci.yml` giờ chỉ giữ trigger, policy, và DAG điều phối. Logic chi tiết đã được tách thành reusable workflows để dễ đọc và review hơn.
+
+1. `prepare-context`
+   - chạy đầu tiên để tính các giá trị dùng chung như `short_sha`, `branch_slug`, `publish_mode`, `release_tag_name`
+   - tránh việc frontend, backend, image, và delivery-contract tự tính lại cùng một policy
+
+2. `frontend-ci`
    - chạy `npm ci`
    - chạy lint
    - chạy test
    - chạy build production
    - upload artifact `frontend-build`
+   - logic nằm trong `_frontend.yml`
 
-2. `backend-ci`
+3. `backend-ci`
    - cài dependencies Python
    - chạy `ruff`
    - chạy `pytest`
+   - logic nằm trong `_backend.yml`
 
-3. `security-scan`
+4. `security-scan`
    - quét repository bằng Trivy
    - kiểm tra lỗ hổng, secrets, và misconfiguration
    - upload artifact `trivy-fs-report`
    - chặn pipeline nếu còn lỗi `HIGH` hoặc `CRITICAL` sau khi áp dụng phần risk acceptance đã khai báo
+   - logic nằm trong `_security.yml`
 
-4. `docker-images`
-   - chỉ chạy sau khi `frontend-ci`, `backend-ci`, và `security-scan` đều đạt
-   - build Docker image cho `frontend` và `backend`
+5. `frontend-image`
+   - chỉ chạy sau khi `prepare-context`, `frontend-ci`, và `security-scan` đều đạt
+   - build Docker image cho `frontend`
    - quét image bằng Trivy
    - sinh SBOM theo chuẩn CycloneDX
    - lưu metadata của image như Git SHA, ref, workflow run, immutable tag, branch tag, release tag
-   - upload artifact:
-     - `image-evidence-frontend`
-     - `image-evidence-backend`
+   - upload artifact `image-evidence-frontend`
+   - logic dùng chung nằm trong `_service-image.yml`
 
-5. `delivery-contract`
+6. `backend-image`
+   - chỉ chạy sau khi `prepare-context`, `backend-ci`, và `security-scan` đều đạt
+   - build Docker image cho `backend`
+   - quét image bằng Trivy
+   - sinh SBOM theo chuẩn CycloneDX
+   - lưu metadata của image như Git SHA, ref, workflow run, immutable tag, branch tag, release tag
+   - upload artifact `image-evidence-backend`
+   - logic dùng chung nằm trong `_service-image.yml`
+
+7. `delivery-contract`
+   - chỉ chạy sau khi `frontend-image` và `backend-image` đều đạt
    - chỉ chạy khi `push` vào `main`
    - sinh artifact `swarm-delivery-contract`
    - artifact này gồm:
-     - `release-manifest.json`
-     - `swarm-deployment-inputs.env`
+      - `release-manifest.json`
+      - `swarm-deployment-inputs.env`
+   - nhận image refs từ outputs của image jobs, không tự tính lại contract chính
    - mục đích là chuẩn bị dữ liệu đầu vào cho CD/Docker Swarm ở phase sau
 
 ## Quy tắc image tag và publish

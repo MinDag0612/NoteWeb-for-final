@@ -40,7 +40,7 @@ Browser (React SPA)
 |- frontend/         # React frontend source, Dockerfile, and static assets
 |- tests/            # Backend test suite for CI
 |- docs/             # CI/CD evidence and handoff docs
-|- .github/          # GitHub Actions workflow and PR template
+|- .github/          # GitHub Actions orchestrator/reusable workflows and PR template
 |- docker-compose.yml # Local multi-container smoke setup
 |- README.md
 ```
@@ -199,7 +199,18 @@ Supporting review and handoff docs:
 
 ## 10. CI Image Publishing Contract
 
-Phase 2 currently uses GitHub Actions as the CI system of record. The workflow file is [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+Phase 2 currently uses GitHub Actions as the CI system of record.
+
+The CI workflow layout is now split into:
+
+- orchestrator workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+- reusable frontend workflow: [`.github/workflows/_frontend.yml`](.github/workflows/_frontend.yml)
+- reusable backend workflow: [`.github/workflows/_backend.yml`](.github/workflows/_backend.yml)
+- reusable repository security workflow: [`.github/workflows/_security.yml`](.github/workflows/_security.yml)
+- reusable service-image workflow: [`.github/workflows/_service-image.yml`](.github/workflows/_service-image.yml)
+- reusable delivery-contract workflow: [`.github/workflows/_delivery-contract.yml`](.github/workflows/_delivery-contract.yml)
+
+`ci.yml` is the DAG orchestrator and trigger/policy entrypoint. The longer service-specific logic now lives in reusable workflows to keep review boundaries clearer while preserving the same CI behavior.
 
 Docker Hub repositories used by CI:
 
