@@ -23,6 +23,7 @@ This document summarizes the current branch state for review, demo preparation, 
 
 - CI now uploads explicit evidence artifacts
 - frontend build artifact is preserved
+- backend wheel artifact is preserved
 - filesystem Trivy report is preserved
 - image-level Trivy reports, SBOMs, and metadata are preserved
 - image metadata now captures branch traceability tags and release tags where applicable
@@ -65,6 +66,7 @@ Evidence and contract docs:
 Primary CI artifacts expected from GitHub Actions:
 
 - `frontend-build`
+- `backend-build`
 - `trivy-fs-report`
 - `image-evidence-frontend`
 - `image-evidence-backend`

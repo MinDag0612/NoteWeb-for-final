@@ -119,6 +119,7 @@ source .venv/bin/activate
 python -m pip install -r backend/requirements.txt -r backend/requirements-dev.txt
 python -m ruff check backend tests
 python -m pytest
+python -m build --wheel --outdir artifacts/backend-dist
 ```
 
 Optional local image build checks:
@@ -320,6 +321,8 @@ Phase 2 CI now produces explicit evidence artifacts intended for grading, report
 
 - `frontend-build`
   - reproducible frontend production build output
+- `backend-build`
+  - reproducible Python wheel artifact for the FastAPI backend
 - `trivy-fs-report`
   - repository-level Trivy JSON report for vulnerabilities, secrets, and misconfigurations
 - `image-evidence-frontend`

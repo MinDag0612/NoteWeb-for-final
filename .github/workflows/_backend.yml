@@ -6,6 +6,9 @@ on:
       python_version:
         required: true
         type: string
+      artifact_retention_days:
+        required: true
+        type: string
 
 jobs:
   backend:
@@ -34,3 +37,25 @@ jobs:
 
       - name: Test backend
         run: python -m pytest
+
+      - name: Build backend wheel artifact
+        run: |
+          mkdir -p artifacts/backend-dist
+          python -m build --wheel --no-isolation --outdir artifacts/backend-dist
+
+      - name: Upload backend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: artifacts/backend-dist
+          if-no-files-found: error
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - name: Summarize backend evidence
+        run: |
+          {
+            echo "### Backend CI Evidence"
+            echo "- Artifact: \`backend-build\`"
+            echo "- Type: Python wheel package built from the FastAPI backend source"
+            echo "- Purpose: reproducible backend application artifact for report, audit, and CI evidence"
+          } >> "${GITHUB_STEP_SUMMARY}"

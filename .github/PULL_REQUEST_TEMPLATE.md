@@ -21,6 +21,7 @@
 - [ ] `python -m pip install -r backend/requirements.txt -r backend/requirements-dev.txt`
 - [ ] `python -m ruff check backend tests`
 - [ ] `python -m pytest`
+- [ ] `python -m build --wheel --outdir artifacts/backend-dist`
 
 Add any relevant notes about skipped checks or environment limits.
 

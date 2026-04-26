@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=69", "wheel>=0.45"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "noteweb-backend"
+version = "0.1.0"
+description = "FastAPI backend service for NoteWeb."
+readme = { text = "FastAPI backend service for NoteWeb.", content-type = "text/plain" }
+requires-python = ">=3.10"
+dynamic = ["dependencies"]
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["backend*"]
+namespaces = true
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["backend/requirements.txt"] }

@@ -57,6 +57,8 @@ Tài liệu này tóm tắt ngắn gọn phần CI đã được bổ sung trên
    - cài dependencies Python
    - chạy `ruff`
    - chạy `pytest`
+   - build Python wheel artifact cho backend
+   - upload artifact `backend-build`
    - logic nằm trong `_backend.yml`
 
 4. `security-scan`
@@ -116,6 +118,8 @@ Tài liệu này tóm tắt ngắn gọn phần CI đã được bổ sung trên
 
 - `frontend-build`
   - output build production của frontend
+- `backend-build`
+  - Python wheel artifact của backend
 - `trivy-fs-report`
   - báo cáo scan source code ở mức repository
 - `image-evidence-frontend`

@@ -46,7 +46,18 @@ It does **not** claim that CD, Docker Swarm deployment, domain/HTTPS, or monitor
   - provides an auditable artifact for the report
   - can be referenced in demo narration when explaining the build stage
 
-### 2. Repository Security Report
+### 2. Backend Build Artifact
+
+- Artifact name: `backend-build`
+- Produced by job: `backend-ci`
+- Implemented by reusable workflow: `_backend.yml`
+- Contents: Python wheel package built from the FastAPI backend source
+- Why it matters:
+  - gives the backend a first-class reproducible application artifact rather than relying only on container images
+  - aligns the backend more closely with the rubric expectation that CI should build application artifacts
+  - provides a clean appendix/demo artifact alongside the frontend static bundle
+
+### 3. Repository Security Report
 
 - Artifact name: `trivy-fs-report`
 - Produced by job: `security-scan`
@@ -61,7 +72,7 @@ It does **not** claim that CD, Docker Swarm deployment, domain/HTTPS, or monitor
   - provides raw evidence for the report and screenshots
   - supports the documented risk-acceptance decision for the legacy CRA toolchain
 
-### 3. Image Evidence Artifact per Service
+### 4. Image Evidence Artifact per Service
 
 Artifact names:
 
@@ -106,6 +117,7 @@ Why this matters:
   - `actions/setup-python` pip cache
 - Reproducible build artifact:
   - `frontend-build`
+  - `backend-build`
 - Security scanning with fail gate:
   - `trivy-fs-report`
   - Trivy image gate in `frontend-image` and `backend-image`
@@ -126,6 +138,7 @@ Show these workflow outcomes:
 
 - frontend lint, test, and build completed
 - backend lint and tests completed
+- backend wheel artifact completed
 - repository security scan completed
 - image build completed for both services
 - image scan evidence generated
