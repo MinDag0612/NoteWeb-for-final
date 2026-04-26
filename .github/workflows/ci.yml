@@ -17,11 +17,6 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  NODE_VERSION: "20"
-  PYTHON_VERSION: "3.10"
-  ARTIFACT_RETENTION_DAYS: "14"
-
 jobs:
   prepare-context:
     name: Prepare Context
@@ -89,8 +84,8 @@ jobs:
       - prepare-context
     uses: ./.github/workflows/_frontend.yml
     with:
-      node_version: ${{ env.NODE_VERSION }}
-      artifact_retention_days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+      node_version: "20"
+      artifact_retention_days: "14"
 
   backend-ci:
     name: Backend CI
@@ -98,7 +93,7 @@ jobs:
       - prepare-context
     uses: ./.github/workflows/_backend.yml
     with:
-      python_version: ${{ env.PYTHON_VERSION }}
+      python_version: "3.10"
 
   security-scan:
     name: Security Scan
@@ -106,7 +101,7 @@ jobs:
       - prepare-context
     uses: ./.github/workflows/_security.yml
     with:
-      artifact_retention_days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+      artifact_retention_days: "14"
 
   frontend-image:
     name: Frontend Image
@@ -123,7 +118,7 @@ jobs:
       branch_slug: ${{ needs.prepare-context.outputs.branch_slug }}
       publish_mode: ${{ needs.prepare-context.outputs.publish_mode }}
       release_tag_name: ${{ needs.prepare-context.outputs.release_tag_name }}
-      artifact_retention_days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+      artifact_retention_days: "14"
     secrets: inherit
 
   backend-image:
@@ -141,7 +136,7 @@ jobs:
       branch_slug: ${{ needs.prepare-context.outputs.branch_slug }}
       publish_mode: ${{ needs.prepare-context.outputs.publish_mode }}
       release_tag_name: ${{ needs.prepare-context.outputs.release_tag_name }}
-      artifact_retention_days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+      artifact_retention_days: "14"
     secrets: inherit
 
   delivery-contract:
@@ -153,7 +148,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/_delivery-contract.yml
     with:
-      artifact_retention_days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+      artifact_retention_days: "14"
       short_sha: ${{ needs.prepare-context.outputs.short_sha }}
       source_branch: ${{ needs.prepare-context.outputs.source_branch }}
       branch_slug: ${{ needs.prepare-context.outputs.branch_slug }}
