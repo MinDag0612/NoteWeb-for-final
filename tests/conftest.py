@@ -80,14 +80,14 @@ def app_module(monkeypatch):
     monkeypatch.setenv("CLOUDY_SECRET", "ci-secret")
     monkeypatch.setenv("GG_CLIENT_ID", "ci-google-client")
 
-    import backend.data.conn as conn_module
-    import backend.jwt_auth as jwt_auth
+    import apps.backend.data.conn as conn_module
+    import apps.backend.jwt_auth as jwt_auth
 
     monkeypatch.setattr(conn_module, "url", "mongodb://ci-test")
     monkeypatch.setattr(conn_module, "MongoClient", FakeMongoClient)
     monkeypatch.setattr(jwt_auth, "JWT_SECRET_KEY", "ci-test-secret")
 
-    import backend.main as main_module
+    import apps.backend.main as main_module
 
     main_module = importlib.reload(main_module)
     monkeypatch.setattr(main_module.jwt, "JWT_SECRET_KEY", "ci-test-secret")

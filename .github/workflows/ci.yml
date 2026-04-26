@@ -114,7 +114,7 @@ jobs:
     with:
       service: frontend
       image: nguyenhongphu1/noteweb-frontend
-      dockerfile: ./frontend/dockerfile
+      dockerfile: ./apps/frontend/dockerfile
       short_sha: ${{ needs.prepare-context.outputs.short_sha }}
       branch_slug: ${{ needs.prepare-context.outputs.branch_slug }}
       publish_mode: ${{ needs.prepare-context.outputs.publish_mode }}
@@ -132,7 +132,7 @@ jobs:
     with:
       service: backend
       image: nguyenhongphu1/noteweb-backend
-      dockerfile: ./backend/dockerfile
+      dockerfile: ./apps/backend/dockerfile
       short_sha: ${{ needs.prepare-context.outputs.short_sha }}
       branch_slug: ${{ needs.prepare-context.outputs.branch_slug }}
       publish_mode: ${{ needs.prepare-context.outputs.publish_mode }}

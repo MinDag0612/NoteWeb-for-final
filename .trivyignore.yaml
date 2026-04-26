@@ -1,91 +1,91 @@
 vulnerabilities:
   - id: CVE-2026-32141
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
   - id: CVE-2026-33228
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
   - id: CVE-2026-1615
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
   - id: CVE-2026-4800
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
   - id: CVE-2026-26996
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
   - id: CVE-2026-27903
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
   - id: CVE-2026-27904
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
   - id: CVE-2026-33891
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
   - id: CVE-2026-33894
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
   - id: CVE-2026-33895
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
   - id: CVE-2026-33896
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
   - id: CVE-2021-3803
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
   - id: CVE-2026-4867
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
   - id: CVE-2026-33671
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
   - id: CVE-2026-27606
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
   - id: GHSA-5c6j-r48x-rmvq
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
   - id: CVE-2026-29074
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
   - id: CVE-2026-27601
     paths:
-      - "frontend/package-lock.json"
+      - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
-    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in frontend/package-lock.json and is not shipped in the final runtime image."
+    statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."

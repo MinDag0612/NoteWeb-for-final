@@ -4,19 +4,19 @@ This repository keeps Trivy severity gates enabled for both source scanning and 
 
 ## Current exception scope
 
-The current exception file is [`.trivyignore.yaml`](.trivyignore.yaml).
+The current exception file is [`.trivyignore.yaml`](../../.trivyignore.yaml).
 
 It is intentionally scoped only to:
 
-- `frontend/package-lock.json`
+- `apps/frontend/package-lock.json`
 
-The accepted findings currently come from the legacy `react-scripts` / CRA build toolchain used to build the frontend in CI. These packages exist in the source dependency graph and in the builder stage, but they are not shipped in the final frontend runtime image, which is the Nginx stage from [`frontend/dockerfile`](frontend/dockerfile).
+The accepted findings currently come from the legacy `react-scripts` / CRA build toolchain used to build the frontend in CI. These packages exist in the source dependency graph and in the builder stage, but they are not shipped in the final frontend runtime image, which is the Nginx stage from [`apps/frontend/dockerfile`](../../apps/frontend/dockerfile).
 
 ## Why this is acceptable for now
 
 - The project still enforces Trivy image scans with `HIGH,CRITICAL` blocking behavior.
 - The final frontend runtime image contains built static assets served by Nginx rather than the CRA toolchain itself.
-- The ignore rules are path-scoped to `frontend/package-lock.json` instead of globally muting the same CVE IDs everywhere else.
+- The ignore rules are path-scoped to `apps/frontend/package-lock.json` instead of globally muting the same CVE IDs everywhere else.
 - Every accepted finding has an expiration date so the exception cannot remain silent indefinitely.
 
 ## Non-accepted areas

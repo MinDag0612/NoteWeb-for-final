@@ -40,7 +40,7 @@ It does **not** claim that CD, Docker Swarm deployment, domain/HTTPS, or monitor
 - Artifact name: `frontend-build`
 - Produced by job: `frontend-ci`
 - Implemented by reusable workflow: `_frontend.yml`
-- Contents: production-ready React build output from `frontend/build`
+- Contents: production-ready React build output from `apps/frontend/build`
 - Why it matters:
   - proves the frontend build is reproducible
   - provides an auditable artifact for the report

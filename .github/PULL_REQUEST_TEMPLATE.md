@@ -14,12 +14,12 @@
 
 ## Verification
 
-- [ ] `cd frontend && npm ci`
-- [ ] `cd frontend && npm run lint`
-- [ ] `cd frontend && npm run test:ci -- --runInBand`
-- [ ] `cd frontend && npm run build`
-- [ ] `python -m pip install -r backend/requirements.txt -r backend/requirements-dev.txt`
-- [ ] `python -m ruff check backend tests`
+- [ ] `cd apps/frontend && npm ci`
+- [ ] `cd apps/frontend && npm run lint`
+- [ ] `cd apps/frontend && npm run test:ci -- --runInBand`
+- [ ] `cd apps/frontend && npm run build`
+- [ ] `python -m pip install -r apps/backend/requirements.txt -r apps/backend/requirements-dev.txt`
+- [ ] `python -m ruff check apps/backend tests`
 - [ ] `python -m pytest`
 - [ ] `python -m build --wheel --outdir artifacts/backend-dist`
 
@@ -45,7 +45,7 @@ Relevant files:
 - `README.md`
 - `docs/CI_EVIDENCE_MAP.md`
 - `docs/CD_SWARM_CONTRACT.md`
-- `SECURITY_RISK_ACCEPTANCE.md`
+- `docs/security/SECURITY_RISK_ACCEPTANCE.md`
 
 ## Risks
 

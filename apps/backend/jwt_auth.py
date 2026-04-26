@@ -1,14 +1,15 @@
+from datetime import datetime, timedelta, timezone
+import os
+from pathlib import Path
+from typing import Any, Dict
+
+from dotenv import load_dotenv
 from fastapi import Depends, HTTPException
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import jwt
 from jose.exceptions import ExpiredSignatureError, JWTError
 
-from datetime import datetime, timedelta, timezone
-from typing import Dict, Any
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
+load_dotenv(Path(__file__).with_name(".env"))
 
 
 # =====================

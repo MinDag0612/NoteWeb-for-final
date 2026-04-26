@@ -1,21 +1,23 @@
-from fastapi import Depends, FastAPI, HTTPException
 from datetime import datetime
-import backend.schema.schema_req as schema_req
-from fastapi.middleware.cors import CORSMiddleware
-from backend.data.conn import Conn
-import bcrypt
-from google.oauth2 import id_token
-from google.auth.transport import requests
-from bson import ObjectId
-from backend.schema.NoteSche import Note
-import backend.jwt_auth as jwt
-from backend.schema.UserSche import User
-from fastapi import UploadFile, File
-import cloudinary.uploader
+from pathlib import Path
 import os
 
+import bcrypt
+import cloudinary.uploader
+from bson import ObjectId
 from dotenv import load_dotenv
-load_dotenv()
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from google.auth.transport import requests
+from google.oauth2 import id_token
+
+import apps.backend.jwt_auth as jwt
+import apps.backend.schema.schema_req as schema_req
+from apps.backend.data.conn import Conn
+from apps.backend.schema.NoteSche import Note
+from apps.backend.schema.UserSche import User
+
+load_dotenv(Path(__file__).with_name(".env"))
 
 CLOUDY_NAME = os.getenv("CLOUDY_NAME")
 CLOUDY_API_KEY = os.getenv("CLOUDY_API_KEY")

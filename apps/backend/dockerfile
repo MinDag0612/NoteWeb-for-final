@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /install
 
-COPY backend/requirements.txt /tmp/requirements.txt
+COPY apps/backend/requirements.txt /tmp/requirements.txt
 RUN python -m pip install --no-cache-dir --prefix=/install -r /tmp/requirements.txt && \
     rm -rf /root/.cache /tmp/requirements.txt
 
@@ -29,10 +29,10 @@ RUN rm -rf \
     /usr/local/lib/python3.10/site-packages/pkg_resources* \
     /usr/local/lib/python3.10/site-packages/wheel* \
     /usr/local/lib/python3.10/site-packages/jaraco*
-COPY --chown=appuser:appuser backend ./backend
+COPY --chown=appuser:appuser apps/backend ./apps/backend
 
 USER appuser
 
 EXPOSE 8000
 
-CMD ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "apps.backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

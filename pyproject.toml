@@ -15,8 +15,8 @@ include-package-data = false
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["backend*"]
+include = ["apps.backend*"]
 namespaces = true
 
 [tool.setuptools.dynamic]
-dependencies = { file = ["backend/requirements.txt"] }
+dependencies = { file = ["apps/backend/requirements.txt"] }

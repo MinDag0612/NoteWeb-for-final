@@ -12,6 +12,11 @@ Tài liệu này tóm tắt ngắn gọn phần CI đã được bổ sung trên
 
 ## File chính
 
+- Mã nguồn ứng dụng hiện được gom trong `apps/`
+  - `apps/frontend`
+  - `apps/backend`
+- Hạ tầng local hiện được gom trong `infra/`
+  - `infra/compose/docker-compose.yml`
 - Workflow điều phối: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
 - Workflow reusable:
   - [`.github/workflows/_frontend.yml`](../.github/workflows/_frontend.yml)

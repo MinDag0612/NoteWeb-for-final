@@ -1,15 +1,15 @@
 services:
   backend:
     build:
-      context: .
-      dockerfile: backend/dockerfile
+      context: ../..
+      dockerfile: apps/backend/dockerfile
     ports:
       - "8000:8000"
 
   frontend:
     build:
-      context: .
-      dockerfile: frontend/dockerfile
+      context: ../..
+      dockerfile: apps/frontend/dockerfile
     ports:
       - "3000:80"
     depends_on:

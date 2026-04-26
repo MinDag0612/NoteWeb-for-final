@@ -36,12 +36,14 @@ Browser (React SPA)
 
 ```text
 .
-|- backend/          # FastAPI backend source
-|- frontend/         # React frontend source, Dockerfile, and static assets
+|- apps/
+|  |- backend/       # FastAPI backend source
+|  |- frontend/      # React frontend source, Dockerfile, and static assets
+|- infra/
+|  |- compose/       # Local multi-container smoke setup
 |- tests/            # Backend test suite for CI
 |- docs/             # CI/CD evidence and handoff docs
 |- .github/          # GitHub Actions orchestrator/reusable workflows and PR template
-|- docker-compose.yml # Local multi-container smoke setup
 |- README.md
 ```
 
@@ -64,8 +66,8 @@ cd NoteWeb-for-final
 ### 5.3 Configure Environment Variables
 
 ```bash
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
+cp apps/backend/.env.example apps/backend/.env
+cp apps/frontend/.env.example apps/frontend/.env
 ```
 
 Update those environment files with real values before running features that depend on third-party services.
@@ -89,8 +91,8 @@ source .venv/bin/activate
 # .\.venv\Scripts\Activate.ps1
 
 pip install --upgrade pip
-pip install -r backend/requirements.txt
-uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+pip install -r apps/backend/requirements.txt
+uvicorn apps.backend.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 Backend health check: `http://127.0.0.1:8000/`
@@ -100,7 +102,7 @@ Backend health check: `http://127.0.0.1:8000/`
 Frontend:
 
 ```bash
-cd frontend
+cd apps/frontend
 npm ci
 npm run lint
 npm run test:ci -- --runInBand
@@ -116,8 +118,8 @@ source .venv/bin/activate
 # Windows PowerShell:
 # .\.venv\Scripts\Activate.ps1
 
-python -m pip install -r backend/requirements.txt -r backend/requirements-dev.txt
-python -m ruff check backend tests
+python -m pip install -r apps/backend/requirements.txt -r apps/backend/requirements-dev.txt
+python -m ruff check apps/backend tests
 python -m pytest
 python -m build --wheel --outdir artifacts/backend-dist
 ```
@@ -125,16 +127,16 @@ python -m build --wheel --outdir artifacts/backend-dist
 Optional local image build checks:
 
 ```bash
-docker build -f frontend/dockerfile -t noteweb-frontend:test .
-docker build -f backend/dockerfile -t noteweb-backend:test .
+docker build -f apps/frontend/dockerfile -t noteweb-frontend:test .
+docker build -f apps/backend/dockerfile -t noteweb-backend:test .
 ```
 
 ## 6. Environment Variables
 
 Environment variables are documented in:
 
-- `backend/.env.example`
-- `frontend/.env.example`
+- `apps/backend/.env.example`
+- `apps/frontend/.env.example`
 
 - `MONGODB_URI`: MongoDB Atlas connection string
 - `JWT_SECRET_KEY`: secret key for JWT token signing
@@ -148,10 +150,10 @@ No real credentials are committed to this repository.
 
 ## 7. Repository Notes
 
-This branch does not currently ship retained `scripts/` or `deploy/` directories.
+This branch now groups application source under `apps/`, local runtime wiring under `infra/`, project references under `docs/project/`, and helper tooling under `scripts/`.
 
 - Earlier project phases may have used manual shell-based deployment assets.
-- The current branch treats GitHub Actions workflow definitions and CI/CD contract documents as the active source of operational truth for Phase 2.
+- The current branch treats GitHub Actions workflow definitions, `infra/compose`, and CI/CD contract documents as the active source of operational truth for Phase 2.
 - Future Docker Swarm deployment assets will be introduced in a later phase rather than inferred from older manual-deployment notes.
 
 ## 8. Deployment Direction (Later Phases)
@@ -176,6 +178,7 @@ Current CI-to-CD preparation docs:
 
 - [`docs/CI_EVIDENCE_MAP.md`](docs/CI_EVIDENCE_MAP.md)
 - [`docs/CD_SWARM_CONTRACT.md`](docs/CD_SWARM_CONTRACT.md)
+- [`docs/project/Final Project.pdf`](docs/project/Final%20Project.pdf)
 
 ## 9. Git Workflow and Collaboration Policy
 
@@ -312,8 +315,8 @@ Operational expectations:
 
 Security exception note:
 
-- Source-repo Trivy enforcement uses a path-scoped exception file for legacy CRA build-time findings in `frontend/package-lock.json`. The rationale and exit plan are documented in [`SECURITY_RISK_ACCEPTANCE.md`](SECURITY_RISK_ACCEPTANCE.md).
-- Container image Trivy enforcement remains blocking for fixable `HIGH` and `CRITICAL` findings, while ignoring unfixed upstream issues until vendor patches exist. The rationale is documented in [`SECURITY_RISK_ACCEPTANCE.md`](SECURITY_RISK_ACCEPTANCE.md).
+- Source-repo Trivy enforcement uses a path-scoped exception file for legacy CRA build-time findings in `apps/frontend/package-lock.json`. The rationale and exit plan are documented in [`docs/security/SECURITY_RISK_ACCEPTANCE.md`](docs/security/SECURITY_RISK_ACCEPTANCE.md).
+- Container image Trivy enforcement remains blocking for fixable `HIGH` and `CRITICAL` findings, while ignoring unfixed upstream issues until vendor patches exist. The rationale is documented in [`docs/security/SECURITY_RISK_ACCEPTANCE.md`](docs/security/SECURITY_RISK_ACCEPTANCE.md).
 
 ## 13. CI Evidence Artifacts
 

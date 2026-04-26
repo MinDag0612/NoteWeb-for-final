@@ -1,8 +1,10 @@
-from pymongo import MongoClient
-from dotenv import load_dotenv
 import os
+from pathlib import Path
 
-load_dotenv()
+from dotenv import load_dotenv
+from pymongo import MongoClient
+
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 url = os.getenv("MONGODB_URI")
 

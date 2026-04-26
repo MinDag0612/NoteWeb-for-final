@@ -1,4 +1,4 @@
-from backend.schema.NoteSche import Note
+from apps.backend.schema.NoteSche import Note
 
 
 def test_default_note_builds_expected_serializable_shape():

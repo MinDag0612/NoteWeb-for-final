@@ -60,8 +60,8 @@ Evidence and contract docs:
 
 - [`docs/CI_EVIDENCE_MAP.md`](CI_EVIDENCE_MAP.md)
 - [`docs/CD_SWARM_CONTRACT.md`](CD_SWARM_CONTRACT.md)
-- [`SECURITY_RISK_ACCEPTANCE.md`](../SECURITY_RISK_ACCEPTANCE.md)
-- [`SECURITY_RISK_ACCEPTANCE.vi.md`](../SECURITY_RISK_ACCEPTANCE.vi.md)
+- [`SECURITY_RISK_ACCEPTANCE.md`](security/SECURITY_RISK_ACCEPTANCE.md)
+- [`SECURITY_RISK_ACCEPTANCE.vi.md`](security/SECURITY_RISK_ACCEPTANCE.vi.md)
 
 Primary CI artifacts expected from GitHub Actions:
 

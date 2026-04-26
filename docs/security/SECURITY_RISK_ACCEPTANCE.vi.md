@@ -4,19 +4,19 @@ Repository này vẫn giữ cơ chế chặn mức độ nghiêm trọng cao c�
 
 ## Phạm vi exception hiện tại
 
-File exception hiện tại là [`.trivyignore.yaml`](.trivyignore.yaml).
+File exception hiện tại là [`.trivyignore.yaml`](../../.trivyignore.yaml).
 
 Exception này được giới hạn có chủ đích chỉ cho:
 
-- `frontend/package-lock.json`
+- `apps/frontend/package-lock.json`
 
-Các findings đang được chấp nhận tạm thời hiện đến từ chuỗi dependency build cũ của `react-scripts` / CRA dùng để build frontend trong CI. Các package này tồn tại trong dependency graph của source code và trong builder stage, nhưng không được đưa vào frontend runtime image cuối cùng, vốn là Nginx stage trong [`frontend/dockerfile`](frontend/dockerfile).
+Các findings đang được chấp nhận tạm thời hiện đến từ chuỗi dependency build cũ của `react-scripts` / CRA dùng để build frontend trong CI. Các package này tồn tại trong dependency graph của source code và trong builder stage, nhưng không được đưa vào frontend runtime image cuối cùng, vốn là Nginx stage trong [`apps/frontend/dockerfile`](../../apps/frontend/dockerfile).
 
 ## Vì sao điều này chấp nhận được ở thời điểm hiện tại
 
 - Dự án vẫn thực thi quét Trivy trên image với chế độ chặn `HIGH,CRITICAL`.
 - Frontend runtime image cuối cùng chỉ chứa static assets đã build và được phục vụ bởi Nginx, không chứa chính toolchain CRA.
-- Các rule ignore được giới hạn theo đường dẫn `frontend/package-lock.json`, thay vì tắt cùng CVE đó trên mọi nơi trong repository.
+- Các rule ignore được giới hạn theo đường dẫn `apps/frontend/package-lock.json`, thay vì tắt cùng CVE đó trên mọi nơi trong repository.
 - Mỗi finding được chấp nhận đều có ngày hết hạn để exception không tồn tại âm thầm vô thời hạn.
 
 ## Những khu vực không được chấp nhận exception

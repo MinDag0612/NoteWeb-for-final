@@ -61,6 +61,8 @@ secrets.*
 logs/
 *.log
 uploads/
+.tmp/
+artifacts/
 tmp/
 temp/
 
@@ -81,3 +83,11 @@ pytest-cache-files-*/
 *.txt
 pdf2txt.py
 PLAN.md
+
+# Tracked project references and repo tooling
+!docs/project/
+!docs/project/*.pdf
+!docs/project/*.txt
+!docs/project/PLAN.md
+!docs/project/README-REACTJS.md
+!scripts/pdf2txt.py
