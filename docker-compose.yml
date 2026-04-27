@@ -1,4 +1,18 @@
 services:
+  mongodb:
+      image: mongo:7
+      container_name: noteweb-mongodb
+      restart: unless-stopped
+      ports:
+        - "27017:27017"
+      environment:
+        MONGO_INITDB_ROOT_USERNAME: admin
+        MONGO_INITDB_ROOT_PASSWORD: admin123
+      volumes:
+        - mongo_data:/data/db
+        - ./mongo-init:/docker-entrypoint-initdb.d
+        - ./dump:/dump
+
   backend:
     build:
       context: .
@@ -12,6 +26,7 @@ services:
       - monitor-net
     depends_on:
       - otel-collector
+      - mongodb
 
   frontend:
     build:
@@ -107,3 +122,4 @@ networks:
 volumes:
   prometheus_data:
   grafana_data:
+  mongo_data:
