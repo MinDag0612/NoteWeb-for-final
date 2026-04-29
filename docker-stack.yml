@@ -86,4 +86,5 @@ volumes:
 
 configs:
   nginx_config:
+    name: nginx_config_${IMAGE_TAG}
     file: ./nginx.conf
