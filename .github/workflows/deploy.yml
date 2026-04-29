@@ -28,7 +28,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
           BRANCH_NAME: ${{ github.ref_name }}
         run: |
-          workflows=("backend.yml" "frontend.yml" "mongo.yml")
+          workflows=("backend.yml" "frontend.yml")
 
           for workflow in "${workflows[@]}"; do
             echo "Waiting for $workflow on $IMAGE_TAG..."
@@ -60,6 +60,16 @@ jobs:
               sleep 10
             done
           done
+
+      - name: "[INFO - Stack] Prepare deploy directory"
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_KEY }}
+
+          script: |
+            mkdir -p /home/ubuntu/deploy
 
       - name: "[INFO - Stack] Copy stack file"
         uses: appleboy/scp-action@v0.1.7
@@ -100,3 +110,10 @@ jobs:
               --with-registry-auth \
               -c docker-stack.yml \
               app
+
+            docker run --rm \
+              --network noteweb-net \
+              -e MONGODB_URI="$MONGODB_URI" \
+              -e SEED_DROP=false \
+              dangwminh/backend:$IMAGE_TAG \
+              python seed.py

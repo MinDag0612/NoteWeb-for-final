@@ -59,7 +59,7 @@ services:
       replicas: 1
 
   mongo:
-    image: dangwminh/mongo-init:${IMAGE_TAG}
+    image: mongo:7
 
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin

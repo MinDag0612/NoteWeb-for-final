@@ -1,0 +1,2 @@
+{"_id":{"$oid":"696fbdd0be46967353045384"},"full_name":"admin","password":"$2b$12$kYszPI29eq10dntoJZf7/ev28a683vyqMTFmVrPc2yyatZwICjime","email":"admin@gmail.com","provider":"local","provider_id":null}
+{"_id":{"$oid":"696fbe12f4c609c8c7ace195"},"full_name":"07-Tôn Minh Đăng","password":null,"email":"tonminhdang9@gmail.com","provider":"google","provider_id":"101842663870047426757"}
