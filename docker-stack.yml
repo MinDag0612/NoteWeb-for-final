@@ -46,8 +46,9 @@ services:
     ports:
       - "80:80"
 
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    configs:
+      - source: nginx_config
+        target: /etc/nginx/conf.d/default.conf
 
     networks:
       app-network:
@@ -82,3 +83,7 @@ networks:
 
 volumes:
   mongo_data:
+
+configs:
+  nginx_config:
+    file: ./nginx.conf
