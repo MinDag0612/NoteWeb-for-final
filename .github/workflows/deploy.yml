@@ -90,6 +90,12 @@ jobs:
           script: |
             cd /home/ubuntu/deploy
 
+            docker network inspect noteweb-net >/dev/null 2>&1 || \
+              docker network create \
+                --driver overlay \
+                --attachable \
+                noteweb-net
+
             docker stack deploy \
               --with-registry-auth \
               -c docker-stack.yml \
