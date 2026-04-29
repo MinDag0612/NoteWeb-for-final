@@ -1,7 +1,15 @@
+version: "3.9"
+
 services:
 
   backend:
     image: dangwminh/backend:${IMAGE_TAG}
+
+    environment:
+      MONGODB_URI: mongodb://admin:admin123@mongo:27017
+
+    networks:
+      - app-network
 
     deploy:
       replicas: 3
@@ -9,3 +17,59 @@ services:
       update_config:
         parallelism: 1
         order: start-first
+
+  frontend:
+    image: dangwminh/frontend:${IMAGE_TAG}
+
+    networks:
+      - app-network
+
+    deploy:
+      replicas: 2
+
+      update_config:
+        parallelism: 1
+        order: start-first
+
+  nginx:
+    image: nginx:latest
+
+    ports:
+      - "80:80"
+
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+
+    networks:
+      - app-network
+
+    deploy:
+      replicas: 1
+
+  mongo:
+    image: mongo:7
+
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+
+    volumes:
+      - mongo_data:/data/db
+
+      # init scripts
+      - ./mongo/init:/docker-entrypoint-initdb.d
+
+      # dump folder
+      - ./mongo/dump:/dump
+
+    networks:
+      - app-network
+
+    deploy:
+      replicas: 1
+
+networks:
+  app-network:
+
+volumes:
+  mongo_data:

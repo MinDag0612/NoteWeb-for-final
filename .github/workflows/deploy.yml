@@ -1,10 +1,10 @@
-name: Deploy
+name: Swarm Deploy
 
 on:
   push:
-    branches:
-      - main
-      - Test/cicd-test
+      branches:
+        - main
+        - Test/cicd-test
   workflow_dispatch:
 
 jobs:
@@ -14,29 +14,10 @@ jobs:
 
     steps:
 
-      - name: Checkout
+      - name: "[INFO - General] Checkout"
         uses: actions/checkout@v4
 
-      - name: Login Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-
-      - name: Check Docker Login
-        run: docker info
-
-      - name: Build backend
-        run: |
-          docker build \
-            -t dangwminh/backend:${{ github.sha }} \
-            ./backend
-
-      - name: Push backend
-        run: |
-          docker push dangwminh/backend:${{ github.sha }}
-
-      - name: Copy stack file
+      - name: "[INFO - Stack] Copy stack file"
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -46,7 +27,7 @@ jobs:
           source: "docker-stack.yml"
           target: "/home/ubuntu/deploy"
 
-      - name: SSH Deploy
+      - name: "[INFO - Stack] Deploy Swarm"
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
