@@ -6,7 +6,12 @@ services:
     image: dangwminh/backend:${IMAGE_TAG}
 
     environment:
-      MONGODB_URI: mongodb://admin:admin123@mongo:27017
+      MONGODB_URI: ${MONGODB_URI}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      CLOUDY_NAME: ${CLOUDY_NAME}
+      CLOUDY_API_KEY: ${CLOUDY_API_KEY}
+      CLOUDY_SECRET: ${CLOUDY_SECRET}
+      GG_CLIENT_ID: ${GG_CLIENT_ID}
 
     networks:
       - app-network
@@ -47,7 +52,7 @@ services:
       replicas: 1
 
   mongo:
-    image: mongo:7
+    image: dangwminh/mongo-init:${IMAGE_TAG}
 
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
@@ -55,12 +60,6 @@ services:
 
     volumes:
       - mongo_data:/data/db
-
-      # init scripts
-      - ./mongo/init:/docker-entrypoint-initdb.d
-
-      # dump folder
-      - ./mongo/dump:/dump
 
     networks:
       - app-network

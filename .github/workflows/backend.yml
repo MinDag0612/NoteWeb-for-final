@@ -26,6 +26,7 @@ jobs:
       - name: "[INFO - Backend] Build backend"
         run: |
           docker build \
+            -f backend/dockerfile \
             -t dangwminh/backend:${{ github.sha }} \
             ./backend
 

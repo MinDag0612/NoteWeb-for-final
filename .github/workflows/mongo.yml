@@ -1,19 +1,17 @@
-name: Frontend CD
+name: Mongo CD
 
 on:
   push:
-      branches:
-        - main
-        - Test/cicd-test
+    branches:
+      - main
+      - Test/cicd-test
   workflow_dispatch:
 
 jobs:
-
-  frontend:
+  mongo:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: "[INFO - General] Checkout"
         uses: actions/checkout@v4
 
@@ -23,13 +21,13 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: "[INFO - Frontend] Build frontend"
+      - name: "[INFO - Mongo] Build Mongo image"
         run: |
           docker build \
-            -f frontend/dockerfile \
-            -t dangwminh/frontend:${{ github.sha }} \
-            ./frontend
+            -f mongo-init/Dockerfile \
+            -t dangwminh/mongo-init:${{ github.sha }} \
+            ./mongo-init
 
-      - name: "[INFO - Frontend] Push frontend"
+      - name: "[INFO - Mongo] Push Mongo image"
         run: |
-          docker push dangwminh/frontend:${{ github.sha }}
+          docker push dangwminh/mongo-init:${{ github.sha }}

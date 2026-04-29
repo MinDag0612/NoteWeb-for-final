@@ -2,10 +2,14 @@ name: Swarm Deploy
 
 on:
   push:
-      branches:
-        - main
-        - Test/cicd-test
+    branches:
+      - main
+      - Test/cicd-test
   workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
 
 jobs:
 
@@ -17,6 +21,46 @@ jobs:
       - name: "[INFO - General] Checkout"
         uses: actions/checkout@v4
 
+      - name: "[INFO - General] Wait for image workflows"
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGE_TAG: ${{ github.sha }}
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          workflows=("backend.yml" "frontend.yml" "mongo.yml")
+
+          for workflow in "${workflows[@]}"; do
+            echo "Waiting for $workflow on $IMAGE_TAG..."
+
+            for attempt in {1..60}; do
+              result=$(gh run list \
+                --workflow "$workflow" \
+                --branch "$BRANCH_NAME" \
+                --commit "$IMAGE_TAG" \
+                --json status,conclusion \
+                --limit 1 \
+                --jq '.[0] // empty | "\(.status) \(.conclusion)"')
+
+              if [ "$result" = "completed success" ]; then
+                echo "$workflow completed successfully."
+                break
+              fi
+
+              if [[ "$result" == completed* ]]; then
+                echo "$workflow finished without success: $result"
+                exit 1
+              fi
+
+              if [ "$attempt" -eq 60 ]; then
+                echo "Timed out waiting for $workflow."
+                exit 1
+              fi
+
+              sleep 10
+            done
+          done
+
       - name: "[INFO - Stack] Copy stack file"
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -24,20 +68,27 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
 
-          source: "docker-stack.yml"
+          source: "docker-stack.yml,nginx.conf"
           target: "/home/ubuntu/deploy"
 
       - name: "[INFO - Stack] Deploy Swarm"
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          CLOUDY_NAME: ${{ secrets.CLOUDY_NAME }}
+          CLOUDY_API_KEY: ${{ secrets.CLOUDY_API_KEY }}
+          CLOUDY_SECRET: ${{ secrets.CLOUDY_SECRET }}
+          GG_CLIENT_ID: ${{ secrets.GG_CLIENT_ID }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
+          envs: IMAGE_TAG,MONGODB_URI,JWT_SECRET_KEY,CLOUDY_NAME,CLOUDY_API_KEY,CLOUDY_SECRET,GG_CLIENT_ID
 
           script: |
             cd /home/ubuntu/deploy
-
-            export IMAGE_TAG=${{ github.sha }}
 
             docker stack deploy \
               --with-registry-auth \
