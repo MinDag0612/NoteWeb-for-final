@@ -1,5 +1,6 @@
 #!/bin/bash
-chmod +x mongo-init/init.sh
+set -e
+
 echo "[INFO] Initializing MongoDB..."
 
 mongorestore \
@@ -7,6 +8,7 @@ mongorestore \
   --password admin123 \
   --authenticationDatabase admin \
   --db WebNote \
+  --drop \
   /dump/WebNote
 
 echo "[INFO] MongoDB initialization complete!"
