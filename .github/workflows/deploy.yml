@@ -3,8 +3,7 @@ name: Swarm Deploy
 on:
   workflow_run:
     workflows:
-      - "Backend CD"
-      - "Frontend CD"
+      - "Backend Build"
     types:
       - completed
 
