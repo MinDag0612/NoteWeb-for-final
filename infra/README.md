@@ -1,152 +1,111 @@
-# Chay Terraform va Ansible
+# Chay infra
 
-Thu tu chay:
+## 1. Tao server bang Terraform
 
-1. Terraform tao EC2 tren AWS.
-2. Lay IP tu Terraform output.
-3. Cap nhat `infra/ansible/inventory.ini`.
-4. Chay Ansible de cai Docker va tao Docker Swarm.
-
-Luu y: cach nay phu hop cho demo/lab/manual deploy. Production nen co remote Terraform state, CI/CD pipeline, dynamic inventory va quan ly secret rieng.
-
-## 1. Chay Terraform
-
-Tao file bien tu file mau:
+Vao thu muc Terraform:
 
 ```bash
 cd infra/terraform
-cp terraform.tfvars.example terraform.tfvars
 ```
 
-Sua `terraform.tfvars`:
-
-```hcl
-admin_cidr = "<ip_public_cua_ban>/32"
-
-# Neu can cai Docker truc tiep qua internet khi chay Ansible demo:
-package_repo_egress_cidrs = ["0.0.0.0/0"]
-```
-
-Production nen thay `package_repo_egress_cidrs` bang CIDR cua NAT/proxy, khong nen de `0.0.0.0/0`.
+Khoi tao Terraform:
 
 ```bash
 terraform init
+```
+
+Y nghia: tai provider AWS va chuan bi thu muc Terraform.
+
+Can thay: dong `Terraform has been successfully initialized`.
+
+Xem truoc se tao gi:
+
+```bash
 terraform plan
+```
+
+Y nghia: kiem tra Terraform se tao/sua/xoa tai nguyen nao.
+
+Can thay: co plan tao EC2, security group, elastic IP.
+
+Tao infra:
+
+```bash
 terraform apply
 ```
 
-Khi duoc hoi, nhap:
+Nhap `yes` khi duoc hoi.
 
-```bash
-yes
-```
+Y nghia: tao server tren AWS va ghi IP vao `../ansible/inventory.ini`.
 
-Xem IP sau khi tao xong:
+Can thay: `Apply complete` va output `manager_ip`, `worker_ips`.
+
+Check nhanh:
 
 ```bash
 terraform output
 ```
 
-Can lay:
+Can thay: IP cua manager va worker.
 
-- `manager_ip`
-- `worker_ips`
+## 2. Cai Docker va tao Docker Swarm bang Ansible
 
-## 2. Cap nhat inventory
-
-Mo file:
-
-```bash
-infra/ansible/inventory.ini
-```
-
-Sua IP theo output Terraform:
-
-```ini
-[manager]
-<manager_ip>
-
-[workers]
-<worker_1_ip>
-<worker_2_ip>
-<worker_3_ip>
-
-[all:vars]
-ansible_user=ubuntu
-ansible_ssh_private_key_file=/duong/dan/toi/key-terra.pem
-```
-
-Nhung cho can sua sau moi lan `terraform apply` moi:
-
-- IP trong `[manager]` va `[workers]`.
-- `ansible_ssh_private_key_file`, tuy theo may cua nguoi chay.
-
-Vi du neu chay bang WSL:
-
-```ini
-ansible_ssh_private_key_file=/home/<user>/.ssh/key-terra.pem
-```
-
-File key nen co quyen:
-
-```bash
-chmod 400 ~/.ssh/key-terra.pem
-```
-
-## 3. Kiem tra Ansible ket noi duoc EC2
+Vao thu muc Ansible:
 
 ```bash
 cd ../ansible
+```
+
+Kiem tra ket noi SSH:
+
+```bash
 ansible all -i inventory.ini -m ping
 ```
 
-Neu thanh cong, cac host se tra ve `pong`.
+Y nghia: kiem tra Ansible co SSH vao duoc cac server khong.
 
-## 4. Cai Docker
+Can thay: moi server tra ve `pong`.
+
+Chay playbook:
 
 ```bash
 ansible-playbook -i inventory.ini playbook.yml
 ```
 
-Playbook nay cai Docker tren manager va workers.
+Y nghia: cai Docker tren cac server, init Swarm tren manager, cho worker join vao cluster.
 
-## 5. Tao Docker Swarm
+Can thay: playbook chay xong khong co task `failed`.
 
-```bash
-ansible-playbook -i inventory.ini swarm.yml
-```
+## 3. Check Docker Swarm
 
-Playbook nay:
-
-- init Swarm tren manager
-- lay worker token
-- cho worker join vao Swarm
-
-Kiem tra cluster:
+SSH vao manager:
 
 ```bash
 ssh -i ~/.ssh/key-terra.pem ubuntu@<manager_ip>
+```
+
+Xem node trong Swarm:
+
+```bash
 docker node ls
 ```
 
-## 6. Xoa ha tang khi khong dung nua
+Can thay: 4 node, gom 1 manager va 3 worker, status la `Ready`.
+
+## 4. Xoa infra khi khong dung nua
+
+Vao lai thu muc Terraform:
 
 ```bash
 cd infra/terraform
+```
+
+Xoa tai nguyen AWS:
+
+```bash
 terraform destroy
 ```
 
-Khi duoc hoi, nhap:
+Nhap `yes` khi duoc hoi.
 
-```bash
-yes
-```
-
-## Can kiem tra neu nguoi khac chay
-
-- AWS credential da duoc cau hinh chua.
-- AWS region trong `infra/terraform/provider.tf` la `ap-southeast-1`.
-- AWS key pair trong `infra/terraform/main.tf` la `key-terra`.
-- File private key local phai khop voi key pair `key-terra`.
-- Neu doi region, can doi AMI trong `infra/terraform/main.tf`.
-- Security group da tach rieng: `swarm_sg` cho SSH/Swarm noi bo, `nginx_sg` cho HTTP/HTTPS public vao manager.
+Can thay: `Destroy complete`.

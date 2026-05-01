@@ -1,31 +1,91 @@
-name: Swarm Deploy
+name: CI-CD Pipeline
 
 on:
-  workflow_run:
-    workflows:
-      - "Release"
-    types:
-      - completed
-
+  push:
+    branches:
+      - main
+      - Test/cicd-test
   workflow_dispatch:
 
-permissions:
-  contents: read
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+
+  # ======================
+  # 1. BUILD BACKEND
+  # ======================
+  backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build backend image
+        run: |
+          docker build \
+            -f backend/dockerfile \
+            -t dangwminh/backend:${{ github.sha }} \
+            ./backend
+
+      - name: Push backend image
+        run: |
+          docker push dangwminh/backend:${{ github.sha }}
+
+
+  # ======================
+  # 2. BUILD FRONTEND
+  # ======================
+  frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build frontend image
+        run: |
+          docker build \
+            -f frontend/dockerfile \
+            -t dangwminh/frontend:${{ github.sha }} \
+            ./frontend
+
+      - name: Push frontend image
+        run: |
+          docker push dangwminh/frontend:${{ github.sha }}
+
+
+  # ======================
+  # 3. DEPLOY (CHỈ CHẠY KHI 2 BUILD OK)
+  # ======================
   deploy:
+    needs: [backend, frontend]
     runs-on: ubuntu-latest
 
     steps:
 
       # ======================
-      # 1. Checkout code
+      # Checkout
       # ======================
       - name: Checkout
         uses: actions/checkout@v4
 
       # ======================
-      # 2. Configure AWS CLI
+      # AWS config
       # ======================
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v4
@@ -35,9 +95,9 @@ jobs:
           aws-region: ap-southeast-1
 
       # ======================
-      # 3. Resolve EC2 instance (no hardcode)
+      # Get EC2 instance
       # ======================
-      - name: Resolve instance ID
+      - name: Get instance ID
         run: |
           INSTANCE_ID=$(aws ec2 describe-instances \
             --filters "Name=tag:Name,Values=swarm-manager" \
@@ -47,7 +107,7 @@ jobs:
           echo "INSTANCE_ID=$INSTANCE_ID" >> $GITHUB_ENV
 
       # ======================
-      # 4. Check instance state
+      # Check state
       # ======================
       - name: Check instance state
         run: |
@@ -60,24 +120,34 @@ jobs:
           echo "STATE=$STATE" >> $GITHUB_ENV
 
       # ======================
-      # 5. Auto start if stopped
+      # Start if stopped
       # ======================
-      - name: Start instance if needed
+      - name: Start instance
         if: env.STATE == 'stopped'
         run: |
           aws ec2 start-instances --instance-ids $INSTANCE_ID
 
       # ======================
-      # 6. Wait instance running
+      # Wait running
       # ======================
       - name: Wait instance running
         run: |
+          STATE=$(aws ec2 describe-instances \
+            --instance-ids $INSTANCE_ID \
+            --query "Reservations[0].Instances[0].State.Name" \
+            --output text)
+
+          if [ "$STATE" = "terminated" ]; then
+            echo "Instance terminated → stop pipeline"
+            exit 1
+          fi
+
           aws ec2 wait instance-running --instance-ids $INSTANCE_ID
 
       # ======================
-      # 7. Get public IP
+      # Get public IP
       # ======================
-      - name: Get public IP
+      - name: Get IP
         run: |
           PUBLIC_IP=$(aws ec2 describe-instances \
             --instance-ids $INSTANCE_ID \
@@ -87,31 +157,29 @@ jobs:
           echo "SERVER_HOST=$PUBLIC_IP" >> $GITHUB_ENV
 
       # ======================
-      # 8. Wait SSH ready
+      # SSH wait
       # ======================
       - name: Wait SSH
         run: |
           for i in {1..30}; do
             nc -z $SERVER_HOST 22 && echo "SSH ready" && break
-            echo "Waiting SSH..."
             sleep 5
           done
 
       # ======================
-      # 9. Prepare deploy folder
+      # Prepare folder
       # ======================
-      - name: Prepare deploy directory
+      - name: Prepare deploy folder
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ env.SERVER_HOST }}
           username: ubuntu
           key: ${{ secrets.SSH_KEY }}
-
           script: |
             mkdir -p /home/ubuntu/deploy
 
       # ======================
-      # 10. Copy stack files
+      # Copy stack
       # ======================
       - name: Copy stack files
         uses: appleboy/scp-action@v0.1.7
@@ -119,12 +187,11 @@ jobs:
           host: ${{ env.SERVER_HOST }}
           username: ubuntu
           key: ${{ secrets.SSH_KEY }}
-
           source: "docker-stack.yml,nginx.conf"
           target: "/home/ubuntu/deploy"
 
       # ======================
-      # 11. Deploy Swarm stack
+      # Deploy swarm
       # ======================
       - name: Deploy Swarm
         uses: appleboy/ssh-action@v1.0.3
