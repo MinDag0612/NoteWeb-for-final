@@ -1,0 +1,79 @@
+name: Infrastructure (Terraform + Ansible)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  iac:
+    runs-on: ubuntu-latest
+
+    steps:
+    # ======================
+    # 1. Checkout
+    # ======================
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # ======================
+    # 2. AWS auth
+    # ======================
+    - name: Configure AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-southeast-1
+
+    # ======================
+    # 3. Terraform init
+    # ======================
+    - name: Terraform Init
+      run: |
+        cd infra/terraform
+        terraform init
+
+    # ======================
+    # 4. Terraform apply (CREATE EC2)
+    # ======================
+    - name: Terraform Apply
+      run: |
+        cd infra/terraform
+        terraform apply -auto-approve
+
+    # ======================
+    # 5. Generate inventory
+    # ======================
+    - name: Generate Inventory
+      run: |
+        cd infra/terraform
+
+        MANAGER=$(terraform output -raw manager_ip)
+        WORKERS=$(terraform output -json worker_ips | jq -r '.[]')
+
+        cd ../ansible
+
+        echo "[manager]" > inventory.ini
+        echo "$MANAGER" >> inventory.ini
+
+        echo "" >> inventory.ini
+        echo "[workers]" >> inventory.ini
+
+        for ip in $WORKERS; do
+          echo $ip >> inventory.ini
+        done
+
+    # ======================
+    # 6. Install Ansible
+    # ======================
+    - name: Install Ansible
+      run: |
+        sudo apt update
+        sudo apt install -y ansible
+
+    # ======================
+    # 7. Run Ansible (Swarm init)
+    # ======================
+    - name: Run Ansible
+      run: |
+        cd infra/ansible
+        ansible-playbook -i inventory.ini playbook.yml
