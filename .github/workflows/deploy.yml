@@ -4,6 +4,9 @@ on:
   workflow_run:
     workflows:
       - "Release"
+    branches:
+      - main
+      - Test/cicd-test
     types:
       - completed
 
