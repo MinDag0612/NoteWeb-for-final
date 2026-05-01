@@ -1,12 +1,14 @@
 name: Swarm Deploy
 
 on:
+  push:
+      branches:
+        - main
+        - Test/cicd-test
   workflow_run:
     workflows:
       - "Release"
-    branches:
-      - main
-      - Test/cicd-test
+    
     types:
       - completed
 

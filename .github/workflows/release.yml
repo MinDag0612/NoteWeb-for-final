@@ -1,12 +1,13 @@
 name: Release
 
 on:
+  push:
+      branches:
+        - main
+        - Test/cicd-test
   workflow_run:
     workflows:
       - "Frontend Build"
-    branches:
-      - main
-      - Test/cicd-test
     types:
       - completed
 
