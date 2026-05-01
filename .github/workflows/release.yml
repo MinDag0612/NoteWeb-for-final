@@ -3,7 +3,6 @@ name: Release
 on:
   workflow_run:
     workflows:
-      - "Backend Build"
       - "Frontend Build"
     types:
       - completed
