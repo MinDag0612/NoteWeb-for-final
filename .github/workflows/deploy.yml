@@ -3,7 +3,7 @@ name: Swarm Deploy
 on:
   workflow_run:
     workflows:
-      - "Backend Build"
+      - "Release"
     types:
       - completed
 
