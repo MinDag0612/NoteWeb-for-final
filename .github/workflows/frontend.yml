@@ -5,6 +5,7 @@ on:
       branches:
         - main
         - Test/cicd-test
+        
   workflow_dispatch:
 
 jobs:
