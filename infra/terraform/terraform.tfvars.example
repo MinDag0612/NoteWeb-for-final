@@ -1,0 +1,6 @@
+admin_cidr = "203.0.113.10/32"
+
+# Production: use your NAT/proxy CIDR instead of 0.0.0.0/0.
+# Demo/bootstrap only: use ["0.0.0.0/0"] if the instances need internet access
+# to run apt update and install Docker.
+package_repo_egress_cidrs = ["203.0.113.0/24"]

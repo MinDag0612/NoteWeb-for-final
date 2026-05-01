@@ -1,10 +1,10 @@
 [manager]
-54.169.183.229
+${manager}
 
 [workers]
-18.141.206.46
-47.129.178.117
-47.129.186.2
+%{ for ip in workers ~}
+${ip}
+%{ endfor ~}
 
 [all:vars]
 ansible_user=ubuntu

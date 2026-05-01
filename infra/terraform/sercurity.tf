@@ -1,4 +1,7 @@
 resource "aws_security_group" "swarm_sg" {
+
+  # checkov:skip=AWS-0104: Required for Docker Swarm nodes (package install, image pull, CI/CD, monitoring)
+
   name        = "swarm-security-group"
   description = "Security group for Docker Swarm cluster"
 

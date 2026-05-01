@@ -1,87 +1,132 @@
 name: Swarm Deploy
 
 on:
-  push:
-    branches:
-      - main
-      - Test/cicd-test
+  workflow_run:
+    workflows:
+      - "Release"
+    types:
+      - completed
+
   workflow_dispatch:
 
 permissions:
   contents: read
-  actions: read
 
 jobs:
-
   deploy:
     runs-on: ubuntu-latest
 
     steps:
 
-      - name: "[INFO - General] Checkout"
+      # ======================
+      # 1. Checkout code
+      # ======================
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: "[INFO - General] Wait for image workflows"
-        if: github.event_name == 'push'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          IMAGE_TAG: ${{ github.sha }}
-          BRANCH_NAME: ${{ github.ref_name }}
+      # ======================
+      # 2. Configure AWS CLI
+      # ======================
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-1
+
+      # ======================
+      # 3. Resolve EC2 instance (no hardcode)
+      # ======================
+      - name: Resolve instance ID
         run: |
-          workflows=("backend.yml" "frontend.yml")
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=swarm-manager" \
+            --query "Reservations[0].Instances[0].InstanceId" \
+            --output text)
 
-          for workflow in "${workflows[@]}"; do
-            echo "Waiting for $workflow on $IMAGE_TAG..."
+          echo "INSTANCE_ID=$INSTANCE_ID" >> $GITHUB_ENV
 
-            for attempt in {1..60}; do
-              result=$(gh run list \
-                --workflow "$workflow" \
-                --branch "$BRANCH_NAME" \
-                --commit "$IMAGE_TAG" \
-                --json status,conclusion \
-                --limit 1 \
-                --jq '.[0] // empty | "\(.status) \(.conclusion)"')
+      # ======================
+      # 4. Check instance state
+      # ======================
+      - name: Check instance state
+        run: |
+          STATE=$(aws ec2 describe-instances \
+            --instance-ids $INSTANCE_ID \
+            --query "Reservations[0].Instances[0].State.Name" \
+            --output text)
 
-              if [ "$result" = "completed success" ]; then
-                echo "$workflow completed successfully."
-                break
-              fi
+          echo "STATE=$STATE"
+          echo "STATE=$STATE" >> $GITHUB_ENV
 
-              if [[ "$result" == completed* ]]; then
-                echo "$workflow finished without success: $result"
-                exit 1
-              fi
+      # ======================
+      # 5. Auto start if stopped
+      # ======================
+      - name: Start instance if needed
+        if: env.STATE == 'stopped'
+        run: |
+          aws ec2 start-instances --instance-ids $INSTANCE_ID
 
-              if [ "$attempt" -eq 60 ]; then
-                echo "Timed out waiting for $workflow."
-                exit 1
-              fi
+      # ======================
+      # 6. Wait instance running
+      # ======================
+      - name: Wait instance running
+        run: |
+          aws ec2 wait instance-running --instance-ids $INSTANCE_ID
 
-              sleep 10
-            done
+      # ======================
+      # 7. Get public IP
+      # ======================
+      - name: Get public IP
+        run: |
+          PUBLIC_IP=$(aws ec2 describe-instances \
+            --instance-ids $INSTANCE_ID \
+            --query "Reservations[0].Instances[0].PublicIpAddress" \
+            --output text)
+
+          echo "SERVER_HOST=$PUBLIC_IP" >> $GITHUB_ENV
+
+      # ======================
+      # 8. Wait SSH ready
+      # ======================
+      - name: Wait SSH
+        run: |
+          for i in {1..30}; do
+            nc -z $SERVER_HOST 22 && echo "SSH ready" && break
+            echo "Waiting SSH..."
+            sleep 5
           done
 
-      - name: "[INFO - Stack] Prepare deploy directory"
+      # ======================
+      # 9. Prepare deploy folder
+      # ======================
+      - name: Prepare deploy directory
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
+          host: ${{ env.SERVER_HOST }}
+          username: ubuntu
           key: ${{ secrets.SSH_KEY }}
 
           script: |
             mkdir -p /home/ubuntu/deploy
 
-      - name: "[INFO - Stack] Copy stack file"
+      # ======================
+      # 10. Copy stack files
+      # ======================
+      - name: Copy stack files
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
+          host: ${{ env.SERVER_HOST }}
+          username: ubuntu
           key: ${{ secrets.SSH_KEY }}
 
           source: "docker-stack.yml,nginx.conf"
           target: "/home/ubuntu/deploy"
 
-      - name: "[INFO - Stack] Deploy Swarm"
+      # ======================
+      # 11. Deploy Swarm stack
+      # ======================
+      - name: Deploy Swarm
         uses: appleboy/ssh-action@v1.0.3
         env:
           IMAGE_TAG: ${{ github.sha }}
@@ -91,9 +136,10 @@ jobs:
           CLOUDY_API_KEY: ${{ secrets.CLOUDY_API_KEY }}
           CLOUDY_SECRET: ${{ secrets.CLOUDY_SECRET }}
           GG_CLIENT_ID: ${{ secrets.GG_CLIENT_ID }}
+
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
+          host: ${{ env.SERVER_HOST }}
+          username: ubuntu
           key: ${{ secrets.SSH_KEY }}
           envs: IMAGE_TAG,MONGODB_URI,JWT_SECRET_KEY,CLOUDY_NAME,CLOUDY_API_KEY,CLOUDY_SECRET,GG_CLIENT_ID
 
@@ -101,10 +147,7 @@ jobs:
             cd /home/ubuntu/deploy
 
             docker network inspect noteweb-net >/dev/null 2>&1 || \
-              docker network create \
-                --driver overlay \
-                --attachable \
-                noteweb-net
+              docker network create --driver overlay --attachable noteweb-net
 
             docker stack deploy \
               --with-registry-auth \

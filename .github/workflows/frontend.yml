@@ -1,10 +1,11 @@
-name: Frontend CD
+name: Frontend Build
 
 on:
   push:
       branches:
         - main
         - Test/cicd-test
+        
   workflow_dispatch:
 
 jobs:
