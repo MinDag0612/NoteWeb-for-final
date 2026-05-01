@@ -61,6 +61,19 @@ jobs:
             done
           done
 
+      - name: Check server alive
+        run: |
+          nc -zv ${{ secrets.SERVER_HOST }} 22
+
+      - name: Wait for SSH
+        run: |
+          for i in {1..20}; do
+            nc -z ${{ secrets.SERVER_HOST }} 22 && echo "SSH ready" && exit 0
+            echo "Waiting SSH..."
+            sleep 5
+          done
+          exit 1
+
       - name: "[INFO - Stack] Prepare deploy directory"
         uses: appleboy/ssh-action@v1.0.3
         with:

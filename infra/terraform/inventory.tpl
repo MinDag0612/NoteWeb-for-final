@@ -1,8 +1,8 @@
 [manager]
-${manager_ip}
+${manager}
 
 [workers]
-%{ for ip in worker_ips ~}
+%{ for ip in workers ~}
 ${ip}
 %{ endfor ~}
 
