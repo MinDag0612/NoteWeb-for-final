@@ -12,6 +12,8 @@ services:
         - mongo_data:/data/db
         - ./mongo-init:/docker-entrypoint-initdb.d
         - ./dump:/dump
+      networks:
+        - monitor-net
 
   backend:
     build:

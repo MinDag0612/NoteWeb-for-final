@@ -6,8 +6,12 @@
 receivers:
   otlp:
     protocols:
-      grpc: # Nhận dữ liệu từ Backend (FastAPI) qua cổng 4317
-      http: # Nhận dữ liệu qua REST API nếu cần
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+        cors:
+          allowed_origins: ["*"] # Cho phép Frontend gửi dữ liệu
 
 processors:
   batch: # Gom dữ liệu gửi đi theo đợt để tối ưu hiệu năng và băng thông
