@@ -1,15 +1,14 @@
-name: CI-CD Pipeline
+name: CD Pipeline
+
+# file này sẽ ko build image nữa mà chỉ dùng để deploy lên ec2
 
 on:
+  workflow_call:
+  workflow_dispatch:
   push:
     branches:
       - main
-      - Test/cicd-test
-  workflow_dispatch:
-
-concurrency:
-  group: ci-cd-${{ github.ref }}
-  cancel-in-progress: true
+      - "release/*"  
 
 jobs:
 
