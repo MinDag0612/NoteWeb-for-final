@@ -29,6 +29,9 @@ __pycache__/
 *.pyo
 *.pyd
 *.so
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
@@ -61,6 +64,8 @@ secrets.*
 logs/
 *.log
 uploads/
+.tmp/
+artifacts/
 tmp/
 temp/
 
@@ -80,3 +85,19 @@ Thumbs.db
 *.tfstate.*
 
 deploy.ps1
+# Pytest cache
+.pytest_cache/
+pytest-cache-files-*/
+
+# Personal notes & temp files
+*.pdf
+*.txt
+pdf2txt.py
+PLAN.md
+/docs/project/
+/scripts/pdf2txt.py
+
+# Intentionally tracked exceptions
+!apps/backend/requirements.txt
+!apps/backend/requirements-dev.txt
+!apps/frontend/public/robots.txt

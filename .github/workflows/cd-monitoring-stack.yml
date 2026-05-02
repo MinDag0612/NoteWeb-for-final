@@ -1,8 +1,8 @@
 name: Deploy Monitoring
 
 on:
-  workflow_call:        # ← cho phép file khác gọi file này
-  workflow_dispatch:
+  workflow_call:        # trigger by CI-CD Pipeline
+  workflow_dispatch:    # manual trigger from GitHub UI
 
 jobs:
   deploy:

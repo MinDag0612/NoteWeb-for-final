@@ -1,0 +1,59 @@
+name: Security Scan Reusable
+
+on:
+  workflow_call:
+    inputs:
+      artifact_retention_days:
+        required: true
+        type: string
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate Trivy filesystem report
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          format: json
+          output: trivy-fs-report.json
+          exit-code: "0"
+
+      - name: Upload Trivy filesystem report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-fs-report
+          path: trivy-fs-report.json
+          if-no-files-found: error
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - name: Enforce Trivy severity gate
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          format: table
+          exit-code: "1"
+          trivyignores: .trivyignore.yaml
+
+      - name: Summarize repository security evidence
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "### Repository Security Evidence"
+            echo "- Artifact: \`trivy-fs-report\`"
+            echo "- Scan scope: filesystem source tree"
+            echo "- Gate: blocks \`HIGH\` and \`CRITICAL\` findings after scoped risk acceptance is applied"
+          } >> "${GITHUB_STEP_SUMMARY}"
