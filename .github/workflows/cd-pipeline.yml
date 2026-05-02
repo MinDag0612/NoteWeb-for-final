@@ -94,8 +94,8 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_KEY }}
           source: |
-            docker-stack.yml
-            nginx.conf
+            ./docker-stack.yml
+            ./nginx.conf
           target: "/home/ubuntu/deploy"
 
       - name: Deploy Swarm
