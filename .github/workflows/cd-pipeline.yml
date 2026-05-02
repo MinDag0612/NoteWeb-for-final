@@ -82,10 +82,10 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: mkdir -p /home/ubuntu/deploy
 
-      - name: Debug files
+      - name: Debug SCP files
         run: |
-          pwd
-          ls -la
+          ls -lah docker-stack.yml
+          ls -lah nginx.conf
 
       - name: Copy stack files
         uses: appleboy/scp-action@v0.1.7
@@ -93,9 +93,7 @@ jobs:
           host: ${{ env.SERVER_HOST }}
           username: ubuntu
           key: ${{ secrets.SSH_KEY }}
-          source: |
-            ./docker-stack.yml
-            ./nginx.conf
+          source: docker-stack.yml,nginx.conf
           target: "/home/ubuntu/deploy"
 
       - name: Deploy Swarm
