@@ -89,3 +89,18 @@ vulnerabilities:
       - "apps/frontend/package-lock.json"
     expired_at: 2026-08-31
     statement: "Accepted temporarily. This finding is currently introduced through the CRA/react-scripts build-time dependency chain recorded in apps/frontend/package-lock.json and is not shipped in the final runtime image."
+
+# AWS-0104 — EC2 cần egress ra internet để pull Docker image từ Docker Hub
+# AWS-0107 — GitHub Actions runner có IP động, không thể restrict SSH theo IP cố định
+misconfigurations:
+  - id: AWS-0104
+    paths:
+      - "infra/terraform/sercurity.tf"
+    expired_at: 2026-08-31
+    statement: "Accepted temporarily. Unrestricted egress required for EC2 to pull Docker images from Docker Hub and install system packages."
+
+  - id: AWS-0107
+    paths:
+      - "infra/terraform/sercurity.tf"
+    expired_at: 2026-08-31
+    statement: "Accepted temporarily. SSH open to all IPs required for CI/CD pipeline to deploy from GitHub Actions runners with dynamic IPs."
