@@ -199,7 +199,7 @@ jobs:
             nginx.conf
             monitoring/otel_config.yaml
           target: "/home/ubuntu/deploy"
-            
+          
 
       # ======================
       # Deploy swarm
