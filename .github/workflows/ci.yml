@@ -161,3 +161,18 @@ jobs:
       backend_immutable_tag: ${{ needs.backend-image.outputs.immutable_tag }}
       backend_traceability_tag: ${{ needs.backend-image.outputs.traceability_tag }}
       backend_image_ref: ${{ needs.backend-image.outputs.image_ref }}
+
+
+  deploy:
+    name: Deploy App
+    needs: [delivery-contract]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/cd-pipeline.yml
+    secrets: inherit
+
+  deploy-monitoring:
+    name: Deploy Monitoring
+    needs: [deploy]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/cd-monitoring-stack.yml
+    secrets: inherit
