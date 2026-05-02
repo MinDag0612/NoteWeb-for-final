@@ -1,0 +1,7 @@
+{"_id":{"$oid":"6975058e2f4388378b8a3acb"},"user_id":"696fbdd0be46967353045384","title":"Title 1 1","content":"Content 12","img":[],"created_at":"25/01/2026"}
+{"_id":{"$oid":"6975e65e6dac370bae547847"},"user_id":"696fbdd0be46967353045384","title":"Chẩn đoán lâm sàng hệ tiêu hóa","content":"âsasas","img":["https://res.cloudinary.com/dtaymi3n9/image/upload/v1769423621/NoteWeb/ljcme5fzafjvdmtoaajn.png"],"created_at":"25/01/2026"}
+{"_id":{"$oid":"6975ebc497d8a28319bef74a"},"user_id":"696fbdd0be46967353045384","title":"Title 3","content":"Content 3fsf","img":[],"created_at":"25/01/2026"}
+{"_id":{"$oid":"69835815cfb65b66068b1634"},"user_id":"696fbe12f4c609c8c7ace195","title":"Title","content":"Content","img":[],"created_at":"04/02/2026"}
+{"_id":{"$oid":"69835819cfb65b66068b1635"},"user_id":"696fbe12f4c609c8c7ace195","title":"Title","content":"Content","img":[],"created_at":"04/02/2026"}
+{"_id":{"$oid":"69a17650adcb7c160021d73d"},"user_id":"696fbdd0be46967353045384","title":"Title 11","content":"Content 11","img":[],"created_at":"27/02/2026"}
+{"_id":{"$oid":"69a531e094f5c688172a2ce0"},"user_id":"696fbdd0be46967353045384","title":"Title","content":"Content","img":[],"created_at":"02/03/2026"}

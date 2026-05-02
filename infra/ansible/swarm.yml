@@ -1,0 +1,27 @@
+- hosts: manager
+  become: yes
+
+  tasks:
+    - name: Initialize Docker Swarm
+      shell: docker swarm init
+      register: swarm_init
+      ignore_errors: yes
+
+    - name: Get worker join token
+      shell: docker swarm join-token -q worker
+      register: worker_token
+
+    - name: Show worker token
+      debug:
+        var: worker_token.stdout
+
+- hosts: workers
+  become: yes
+
+  tasks:
+    - name: Join workers to swarm
+      shell: >
+        docker swarm join
+        --token {{ hostvars[groups['manager'][0]]['worker_token'].stdout }}
+        {{ hostvars[groups['manager'][0]]['ansible_host'] | default(groups['manager'][0]) }}:2377
+      ignore_errors: yes

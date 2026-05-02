@@ -26,6 +26,7 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     networks:
       - monitor-net
+      - MONGODB_URI: mongodb://admin:admin123@mongodb:27017/?authSource=admin
     depends_on:
       - otel-collector
       - mongodb
