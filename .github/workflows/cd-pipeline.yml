@@ -88,13 +88,14 @@ jobs:
           ls -lah nginx.conf
 
       - name: Copy stack files
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v0.1.8
         with:
           host: ${{ env.SERVER_HOST }}
           username: ubuntu
           key: ${{ secrets.SSH_KEY }}
           source: docker-stack.yml,nginx.conf
           target: "/home/ubuntu/deploy"
+          debug: true
 
       - name: Deploy Swarm
         uses: appleboy/ssh-action@v1.0.3
