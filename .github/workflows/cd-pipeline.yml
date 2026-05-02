@@ -108,11 +108,75 @@ jobs:
             docker network inspect noteweb-net >/dev/null 2>&1 || \
               docker network create --driver overlay --attachable noteweb-net
 
+            # Lưu tag đang chạy trước khi deploy
+            CURRENT_TAG=$(docker service inspect app_backend \
+              --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}' 2>/dev/null \
+              | cut -d: -f2 || echo "none")
+            echo "Current tag: $CURRENT_TAG"
+
+            # Deploy version mới
             docker stack deploy \
               --with-registry-auth \
               -c docker-stack.yml \
               app
 
+            # Chờ và kiểm tra services healthy
+            echo "Waiting for services to converge..."
+            TIMEOUT=120
+            ELAPSED=0
+            FAILED=false
+
+            while [ $ELAPSED -lt $TIMEOUT ]; do
+              sleep 10
+              ELAPSED=$((ELAPSED + 10))
+
+              # Đếm replicas đang running
+              BACKEND_RUNNING=$(docker service ps app_backend \
+                --filter "desired-state=running" \
+                --format "{{.CurrentState}}" \
+                | grep -c "Running" || true)
+
+              FRONTEND_RUNNING=$(docker service ps app_frontend \
+                --filter "desired-state=running" \
+                --format "{{.CurrentState}}" \
+                | grep -c "Running" || true)
+
+              # Đếm replicas bị fail
+              BACKEND_FAILED=$(docker service ps app_backend \
+                --filter "desired-state=shutdown" \
+                --format "{{.Error}}" \
+                | grep -c "non-zero exit" || true)
+
+              echo "Backend running: $BACKEND_RUNNING, failed: $BACKEND_FAILED"
+              echo "Frontend running: $FRONTEND_RUNNING"
+
+              # Nếu có replica fail → rollback
+              if [ "$BACKEND_FAILED" -gt "2" ]; then
+                echo "Too many failures detected, rolling back..."
+                FAILED=true
+                break
+              fi
+
+              # Nếu đủ replicas running → success
+              if [ "$BACKEND_RUNNING" -ge "3" ] && [ "$FRONTEND_RUNNING" -ge "2" ]; then
+                echo "Deploy successful!"
+                break
+              fi
+            done
+
+            # Rollback nếu fail
+            if [ "$FAILED" = "true" ]; then
+              echo "=== ROLLING BACK to $CURRENT_TAG ==="
+              export IMAGE_TAG=$CURRENT_TAG
+              docker stack deploy \
+                --with-registry-auth \
+                -c docker-stack.yml \
+                app
+              echo "Rollback complete"
+              exit 1
+            fi
+
+            # Seed data
             docker run --rm \
               --network noteweb-net \
               -e MONGODB_URI="$MONGODB_URI" \
