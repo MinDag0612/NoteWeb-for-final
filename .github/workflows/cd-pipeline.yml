@@ -30,9 +30,9 @@ jobs:
       - name: Build backend image
         run: |
           docker build \
-            -f ./apps/backend/dockerfile \
+            -f apps/backend/dockerfile \
             -t dangwminh/backend:${{ github.sha }} \
-            ./apps/backend
+            apps/backend
 
       - name: Push backend image
         run: |
@@ -58,9 +58,9 @@ jobs:
       - name: Build frontend image
         run: |
           docker build \
-            -f frontend/dockerfile \
+            -f apps/frontend/dockerfile \
             -t dangwminh/frontend:${{ github.sha }} \
-            ./apps/frontend
+            apps/frontend
 
       - name: Push frontend image
         run: |
