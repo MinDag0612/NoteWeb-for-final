@@ -10,6 +10,10 @@ resource "aws_instance" "manager" {
     http_put_response_hop_limit = 2
   }
 
+  root_block_device {
+    encrypted = true
+  }
+
   tags = {
     Name = "swarm-manager"
   }
@@ -26,6 +30,10 @@ resource "aws_instance" "worker" {
     http_endpoint               = "enabled"
     http_tokens                 = "required"
     http_put_response_hop_limit = 2
+  }
+
+  root_block_device {
+    encrypted = true
   }
 
   tags = {
