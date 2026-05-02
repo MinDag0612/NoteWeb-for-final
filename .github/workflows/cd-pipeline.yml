@@ -128,18 +128,19 @@ jobs:
       # ======================
       # Wait running
       # ======================
-      - name: Wait instance running
+
+      - name: Get manager instance id
         run: |
-          STATE=$(aws ec2 describe-instances \
-            --instance-ids $INSTANCE_ID \
-            --query "Reservations[0].Instances[0].State.Name" \
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=swarm-manager" \
+                      "Name=instance-state-name,Values=pending,running,stopped" \
+            --query "Reservations[0].Instances[0].InstanceId" \
             --output text)
 
-          if [ "$STATE" = "terminated" ]; then
-            echo "Instance terminated → stop pipeline"
-            exit 1
-          fi
+          echo "INSTANCE_ID=$INSTANCE_ID" >> $GITHUB_ENV
 
+      - name: Wait instance running
+        run: |
           aws ec2 wait instance-running --instance-ids $INSTANCE_ID
 
       # ======================
