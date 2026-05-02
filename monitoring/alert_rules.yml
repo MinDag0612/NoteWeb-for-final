@@ -16,7 +16,13 @@ groups:
           severity: warning
 
       - alert: HighMemory
-        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100 > 85
+        expr: |
+          (container_memory_usage_bytes{container!=""} 
+          / container_spec_memory_limit_bytes{container!=""}) * 100 > 85
+          and
+          container_spec_memory_limit_bytes{container!=""} > 0
         for: 3m
         labels:
           severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.name }}"

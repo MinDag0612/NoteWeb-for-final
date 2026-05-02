@@ -6,6 +6,8 @@ services:
     configs:
       - source: prometheus_config
         target: /etc/prometheus/prometheus.yml
+      - source: alert_rules
+        target: /etc/prometheus/alert-rules.yml
     volumes:
       - prometheus_data:/prometheus
     deploy:
@@ -31,6 +33,8 @@ services:
 configs:
   prometheus_config:
     file: ./prometheus.yml
+  alert_rules:
+    file: ./alert_rules.yml
 
 networks:
   noteweb-net:

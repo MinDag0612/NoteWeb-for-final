@@ -22,6 +22,12 @@ services:
     deploy:
       replicas: 3
 
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M 
+
       update_config:
         parallelism: 1
         order: start-first
@@ -36,6 +42,12 @@ services:
 
     deploy:
       replicas: 2
+
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
 
       update_config:
         parallelism: 1
@@ -77,6 +89,12 @@ services:
     deploy:
       replicas: 1
 
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
   node-exporter:
     image: prom/node-exporter:latest
     deploy:
@@ -114,8 +132,8 @@ services:
     image: otel/opentelemetry-collector-contrib:latest
     configs:
       - source: otel_config
-        target: /etc/otel-config.yaml
-    command: ["--config=/etc/otel-config.yaml"]
+        target: /etc/otel_config.yaml
+    command: ["--config=/etc/otel_config.yaml"]
     deploy:
       replicas: 1
       restart_policy:
@@ -136,4 +154,4 @@ configs:
     name: nginx_config_${IMAGE_TAG}
     file: ./nginx.conf
   otel_config:
-    file: ./monitoring/otel-config.yaml
+    file: ./monitoring/otel_config.yaml
