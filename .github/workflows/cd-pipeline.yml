@@ -190,15 +190,12 @@ jobs:
       # Copy stack
       # ======================
       - name: Copy stack files
-        uses: appleboy/scp-action@v1.0.1
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ env.SERVER_HOST }}
           username: ubuntu
           key: ${{ secrets.SSH_KEY }}
-          source: |
-            docker-stack.yml
-            nginx.conf
-            monitoring/otel_config.yaml
+          source: "docker-stack.yml,nginx.conf,monitoring/otel_config.yaml"
           target: "/home/ubuntu/deploy"
           
 
