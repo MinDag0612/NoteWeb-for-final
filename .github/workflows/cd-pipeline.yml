@@ -1,6 +1,5 @@
 name: CD Pipeline
 
-# file này sẽ ko build image nữa mà chỉ dùng để deploy lên ec2
 
 on:
   workflow_call:
@@ -31,9 +30,9 @@ jobs:
       - name: Build backend image
         run: |
           docker build \
-            -f backend/dockerfile \
+            -f ./apps/backend/dockerfile \
             -t dangwminh/backend:${{ github.sha }} \
-            ./backend
+            ./apps/backend
 
       - name: Push backend image
         run: |
@@ -61,7 +60,7 @@ jobs:
           docker build \
             -f frontend/dockerfile \
             -t dangwminh/frontend:${{ github.sha }} \
-            ./frontend
+            ./apps/frontend
 
       - name: Push frontend image
         run: |
