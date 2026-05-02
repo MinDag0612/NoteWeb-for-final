@@ -231,3 +231,9 @@ jobs:
               -e SEED_DROP=false \
               dangwminh/backend:$IMAGE_TAG \
               python seed.py
+      
+deploy-monitoring:
+    needs: [deploy]
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/deploy-monitoring.yml
+    secrets: inherit     # tự động truyền tất cả secrets sang

@@ -1,17 +1,12 @@
 name: Deploy Monitoring
 
 on:
-  workflow_run:
-    workflows: ["CI-CD Pipeline"]
-    types:
-      - completed
-    branches:
-      - main
+  workflow_call:        # ← cho phép file khác gọi file này
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
 
     steps:
       - name: Checkout
@@ -53,8 +48,7 @@ jobs:
           host: ${{ env.SERVER_HOST }}
           username: ubuntu
           key: ${{ secrets.SSH_KEY }}
-          script: |
-            mkdir -p /home/ubuntu/deploy/monitoring
+          script: mkdir -p /home/ubuntu/deploy/monitoring
 
       - name: Copy monitoring files
         uses: appleboy/scp-action@v0.1.7
@@ -76,22 +70,16 @@ jobs:
           envs: GRAFANA_PASSWORD
           script: |
             cd /home/ubuntu/deploy/monitoring
-
             docker stack rm monitoring 2>/dev/null || true
             sleep 10
+            docker stack deploy -c monitoring-stack.yml monitoring
 
-            docker stack deploy \
-              -c monitoring-stack.yml \
-              monitoring
-
-      - name: Health check monitoring
+      - name: Health check
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ env.SERVER_HOST }}
           username: ubuntu
           key: ${{ secrets.SSH_KEY }}
           script: |
-            echo "Waiting for monitoring services..."
             sleep 20
             docker stack services monitoring
-            docker stack ps monitoring --filter "desired-state=shutdown" | head -20
