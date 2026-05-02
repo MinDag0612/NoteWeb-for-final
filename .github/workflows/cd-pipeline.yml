@@ -176,6 +176,14 @@ jobs:
           script: |
             mkdir -p /home/ubuntu/deploy
             mkdir -p /home/ubuntu/deploy/monitoring
+      - name: Check files
+        run: |
+          pwd
+          ls -lah
+          ls -lah monitoring
+          test -f docker-stack.yml
+          test -f nginx.conf
+          test -f monitoring/otel_config.yaml
 
       # ======================
       # Copy stack
