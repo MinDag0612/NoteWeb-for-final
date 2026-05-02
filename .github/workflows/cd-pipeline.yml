@@ -88,7 +88,7 @@ jobs:
           ls -lah nginx.conf
 
       - name: Copy stack files
-        uses: appleboy/scp-action@v0.1.8
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ env.SERVER_HOST }}
           username: ubuntu
