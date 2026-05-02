@@ -191,16 +191,7 @@ jobs:
             nginx.conf
             monitoring/otel_config.yaml
           target: "/home/ubuntu/deploy"
-
-      - name: Check files
-        run: |
-          pwd
-          ls -lah
-          ls -lah monitoring
-          test -f docker-stack.yml
-          test -f nginx.conf
-          test -f monitoring/otel_config.yaml
-            
+          
 
       # ======================
       # Deploy swarm
