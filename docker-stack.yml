@@ -6,7 +6,7 @@ services:
     image: dangwminh/backend:${IMAGE_TAG}
 
     environment:
-      MONGODB_URI: ${MONGODB_URI}
+      MONGODB_URI: mongodb://admin:admin123@mongo:27017
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       CLOUDY_NAME: ${CLOUDY_NAME}
       CLOUDY_API_KEY: ${CLOUDY_API_KEY}
