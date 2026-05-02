@@ -2,13 +2,11 @@ name: Deploy Monitoring
 
 on:
   workflow_run:
-    workflows: ["CI-CD Pipeline"]   # ← tên đúng với file cd.yml cũ
+    workflows: ["CI-CD Pipeline"]
     types:
       - completed
     branches:
       - main
-      - Test/cicd-test              # ← thêm branch này nếu muốn trigger cả 2
-  workflow_dispatch:
 
 jobs:
   deploy:
