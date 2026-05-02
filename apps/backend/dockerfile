@@ -6,15 +6,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /install
 
-COPY apps/backend/requirements.txt /tmp/requirements.txt
-RUN python -m pip install --no-cache-dir --prefix=/install -r /tmp/requirements.txt && \
-    rm -rf /root/.cache /tmp/requirements.txt
+COPY requirements.txt /tmp/requirements.txt
+
+RUN python -m pip install --no-cache-dir --prefix=/install -r /tmp/requirements.txt
+
 
 FROM python:3.10.20-slim-bookworm AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH="/install/lib/python3.10/site-packages"
+    PYTHONPATH="/app:/install/lib/python3.10/site-packages"
 
 WORKDIR /app
 
@@ -22,14 +23,7 @@ RUN groupadd --system appuser && \
     useradd --system --gid appuser --home-dir /app --create-home appuser
 
 COPY --from=builder /install /install
-RUN rm -rf \
-    /usr/local/bin/pip* \
-    /usr/local/lib/python3.10/site-packages/pip* \
-    /usr/local/lib/python3.10/site-packages/setuptools* \
-    /usr/local/lib/python3.10/site-packages/pkg_resources* \
-    /usr/local/lib/python3.10/site-packages/wheel* \
-    /usr/local/lib/python3.10/site-packages/jaraco*
-COPY --chown=appuser:appuser apps/backend ./apps/backend
+COPY --chown=appuser:appuser . .
 
 USER appuser
 
