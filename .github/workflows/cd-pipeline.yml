@@ -176,7 +176,7 @@ jobs:
           script: |
             mkdir -p /home/ubuntu/deploy
             mkdir -p /home/ubuntu/deploy/monitoring
-            
+
       - name: Check files
         run: |
           pwd
@@ -195,10 +195,7 @@ jobs:
           host: ${{ env.SERVER_HOST }}
           username: ubuntu
           key: ${{ secrets.SSH_KEY }}
-          source: |
-            docker-stack.yml
-            nginx.conf
-            monitoring/otel_config.yaml
+          source: "docker-stack.yml,nginx.conf,monitoring/otel_config.yaml"
           target: "/home/ubuntu/deploy"
           
 
