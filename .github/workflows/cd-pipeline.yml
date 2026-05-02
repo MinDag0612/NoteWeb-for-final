@@ -5,6 +5,9 @@ on:
     branches:
       - main
       - Test/cicd-test
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 concurrency:
@@ -75,6 +78,7 @@ jobs:
   deploy:
     needs: [backend, frontend]
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' # deploy when push or manual, not for PR
 
     steps:
 

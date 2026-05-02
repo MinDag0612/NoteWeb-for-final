@@ -1,1 +1,22 @@
-# todo: add rules for alerting when CPU or memory usage is too high, or when a container goes down
+groups:
+  - name: container_alerts
+    rules:
+      - alert: ContainerDown
+        expr: absent(container_last_seen{name="backend"})
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backend container is down"
+
+      - alert: HighCPU
+        expr: rate(container_cpu_usage_seconds_total[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+
+      - alert: HighMemory
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100 > 85
+        for: 3m
+        labels:
+          severity: warning

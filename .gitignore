@@ -78,3 +78,5 @@ Thumbs.db
 .terraform/
 *.tfstate
 *.tfstate.*
+
+deploy.ps1
