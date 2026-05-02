@@ -235,4 +235,4 @@ jobs:
               -e MONGODB_URI="$MONGODB_URI" \
               -e SEED_DROP=false \
               dangwminh/backend:$IMAGE_TAG \
-              python seed.py
+              python -m apps.backend.seed
