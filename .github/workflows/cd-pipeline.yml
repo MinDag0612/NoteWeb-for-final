@@ -1,13 +1,15 @@
-name: CD Pipeline
-
+name: CI-CD Pipeline
 
 on:
-  workflow_call:
-  workflow_dispatch:
   push:
     branches:
       - main
-      - "release/*"  
+      - Test/cicd-test
+  workflow_dispatch:
+
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
 
@@ -30,9 +32,9 @@ jobs:
       - name: Build backend image
         run: |
           docker build \
-            -f apps/backend/dockerfile \
+            -f backend/dockerfile \
             -t dangwminh/backend:${{ github.sha }} \
-            .
+            ./backend
 
       - name: Push backend image
         run: |
@@ -58,9 +60,9 @@ jobs:
       - name: Build frontend image
         run: |
           docker build \
-            -f apps/frontend/dockerfile \
+            -f frontend/dockerfile \
             -t dangwminh/frontend:${{ github.sha }} \
-            .
+            ./frontend
 
       - name: Push frontend image
         run: |
@@ -128,22 +130,18 @@ jobs:
       # ======================
       # Wait running
       # ======================
-
-      - name: Get manager instance id
-        run: |
-          INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=swarm-manager" \
-                      "Name=instance-state-name,Values=running" \
-            --query "Reservations[0].Instances[0].InstanceId" \
-            --output text)
-
-          echo "INSTANCE_ID=$INSTANCE_ID"
-          echo "INSTANCE_ID=$INSTANCE_ID" >> $GITHUB_ENV
-
-
-
       - name: Wait instance running
         run: |
+          STATE=$(aws ec2 describe-instances \
+            --instance-ids $INSTANCE_ID \
+            --query "Reservations[0].Instances[0].State.Name" \
+            --output text)
+
+          if [ "$STATE" = "terminated" ]; then
+            echo "Instance terminated → stop pipeline"
+            exit 1
+          fi
+
           aws ec2 wait instance-running --instance-ids $INSTANCE_ID
 
       # ======================
@@ -179,16 +177,6 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             mkdir -p /home/ubuntu/deploy
-            mkdir -p /home/ubuntu/deploy/monitoring
-
-      - name: Check files
-        run: |
-          pwd
-          ls -lah
-          ls -lah monitoring
-          test -f docker-stack.yml
-          test -f nginx.conf
-          test -f monitoring/otel_config.yaml
 
       # ======================
       # Copy stack
@@ -199,9 +187,8 @@ jobs:
           host: ${{ env.SERVER_HOST }}
           username: ubuntu
           key: ${{ secrets.SSH_KEY }}
-          source: "docker-stack.yml,nginx.conf,monitoring/otel_config.yaml"
+          source: "docker-stack.yml,nginx.conf"
           target: "/home/ubuntu/deploy"
-          
 
       # ======================
       # Deploy swarm
@@ -239,4 +226,4 @@ jobs:
               -e MONGODB_URI="$MONGODB_URI" \
               -e SEED_DROP=false \
               dangwminh/backend:$IMAGE_TAG \
-              python -m apps.backend.seed
+              python seed.py
