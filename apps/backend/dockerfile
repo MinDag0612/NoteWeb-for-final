@@ -8,7 +8,9 @@ WORKDIR /install
 
 COPY apps/backend/requirements.txt /tmp/requirements.txt
 
-RUN python -m pip install --no-cache-dir --prefix=/install -r /tmp/requirements.txt
+# Upgrade build tools first to get patched versions
+RUN pip install --upgrade "pip" "setuptools>=79.0.1" "wheel>=0.46.2" && \
+    python -m pip install --no-cache-dir --prefix=/install -r /tmp/requirements.txt
 
 
 FROM python:3.10.20-slim-bookworm AS runtime
