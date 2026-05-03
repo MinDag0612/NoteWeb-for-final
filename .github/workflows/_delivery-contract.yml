@@ -1,0 +1,161 @@
+name: Delivery Contract Reusable
+
+on:
+  workflow_call:
+    inputs:
+      artifact_retention_days:
+        required: true
+        type: string
+      short_sha:
+        required: true
+        type: string
+      source_branch:
+        required: true
+        type: string
+      branch_slug:
+        required: true
+        type: string
+      frontend_repository:
+        required: true
+        type: string
+      frontend_immutable_tag:
+        required: true
+        type: string
+      frontend_traceability_tag:
+        required: true
+        type: string
+      frontend_image_ref:
+        required: true
+        type: string
+      backend_repository:
+        required: true
+        type: string
+      backend_immutable_tag:
+        required: true
+        type: string
+      backend_traceability_tag:
+        required: true
+        type: string
+      backend_image_ref:
+        required: true
+        type: string
+  
+  workflow_dispatch:
+    inputs:
+      run_id:
+        required: false
+        default: ""
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Load inputs from latest CI artifact
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Lấy run_id từ input hoặc tự tìm run mới nhất có artifact
+          RUN_ID="${{ inputs.run_id }}"
+
+          if [ -z "$RUN_ID" ]; then
+            RUN_ID=$(gh api \
+              "/repos/${{ github.repository }}/actions/artifacts" \
+              --jq '[.artifacts[] | select(.name=="swarm-delivery-contract" and .expired==false)] | sort_by(.created_at) | last | .workflow_run.id')
+          fi
+
+          echo "Using run_id: $RUN_ID"
+
+          # Download artifact
+          gh run download "$RUN_ID" \
+            --repo ${{ github.repository }} \
+            --name swarm-delivery-contract \
+            --dir ./artifacts
+
+          # Load các biến từ .env file vào GITHUB_ENV
+          while IFS='=' read -r key value; do
+            [[ -z "$key" || "$key" == \#* ]] && continue
+            echo "$key=$value" >> $GITHUB_ENV
+          done < ./artifacts/swarm-deployment-inputs.env
+          
+      - name: Prepare delivery contract
+        run: |
+          mkdir -p artifacts
+
+          cat > artifacts/release-manifest.json <<EOF
+          {
+            "schema_version": 1,
+            "delivery_target": "future-docker-swarm-cd",
+            "git_sha": "${GITHUB_SHA}",
+            "short_sha": "${{ inputs.short_sha }}",
+            "git_ref": "${GITHUB_REF}",
+            "source_branch": "${{ inputs.source_branch }}",
+            "branch_slug": "${{ inputs.branch_slug }}",
+            "event_name": "${GITHUB_EVENT_NAME}",
+            "workflow": "${GITHUB_WORKFLOW}",
+            "run_id": "${GITHUB_RUN_ID}",
+            "run_number": "${GITHUB_RUN_NUMBER}",
+            "images": {
+              "frontend": {
+                "repository": "${{ inputs.frontend_repository }}",
+                "immutable_tag": "${{ inputs.frontend_immutable_tag }}",
+                "traceability_tag": "${{ inputs.frontend_traceability_tag }}",
+                "image_ref": "${{ inputs.frontend_image_ref }}"
+              },
+              "backend": {
+                "repository": "${{ inputs.backend_repository }}",
+                "immutable_tag": "${{ inputs.backend_immutable_tag }}",
+                "traceability_tag": "${{ inputs.backend_traceability_tag }}",
+                "image_ref": "${{ inputs.backend_image_ref }}"
+              }
+            },
+            "cd_contract": {
+              "deployment_identifier": "${{ inputs.frontend_immutable_tag }}",
+              "primary_rule": "Docker Swarm CD must deploy only the immutable sha-* image refs from this manifest.",
+              "forbidden_tags": [
+                "latest"
+              ],
+              "traceability_only_tags": [
+                "${{ inputs.frontend_traceability_tag }}"
+              ]
+            }
+          }
+          EOF
+
+          cat > artifacts/swarm-deployment-inputs.env <<EOF
+          GIT_SHA=${GITHUB_SHA}
+          SHORT_SHA=${{ inputs.short_sha }}
+          SOURCE_BRANCH=${{ inputs.source_branch }}
+          BRANCH_SLUG=${{ inputs.branch_slug }}
+          FRONTEND_IMAGE=${{ inputs.frontend_repository }}
+          BACKEND_IMAGE=${{ inputs.backend_repository }}
+          FRONTEND_IMAGE_TAG=${{ inputs.frontend_immutable_tag }}
+          BACKEND_IMAGE_TAG=${{ inputs.backend_immutable_tag }}
+          FRONTEND_IMAGE_REF=${{ inputs.frontend_image_ref }}
+          BACKEND_IMAGE_REF=${{ inputs.backend_image_ref }}
+          TRACEABILITY_TAG=${{ inputs.frontend_traceability_tag }}
+          SWARM_DEPLOYMENT_IDENTIFIER=${{ inputs.frontend_immutable_tag }}
+          EOF
+
+      - name: Upload delivery contract artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: swarm-delivery-contract
+          path: |
+            artifacts/release-manifest.json
+            artifacts/swarm-deployment-inputs.env
+          if-no-files-found: error
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - name: Summarize delivery contract
+        run: |
+          {
+            echo "### Delivery Contract"
+            echo "- Artifact: \`swarm-delivery-contract\`"
+            echo "- Future deployment target: Docker Swarm"
+            echo "- Primary deployment identifier: \`${{ inputs.frontend_immutable_tag }}\`"
+            echo "- Rule: future CD must consume only immutable \`sha-*\` image references"
+          } >> "${GITHUB_STEP_SUMMARY}"
