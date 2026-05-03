@@ -1,0 +1,178 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - "**"
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare-context:
+    name: Prepare Context
+    runs-on: ubuntu-latest
+    outputs:
+      short_sha: ${{ steps.vars.outputs.short_sha }}
+      source_branch: ${{ steps.vars.outputs.source_branch }}
+      branch_slug: ${{ steps.vars.outputs.branch_slug }}
+      publish_mode: ${{ steps.vars.outputs.publish_mode }}
+      release_tag_name: ${{ steps.vars.outputs.release_tag_name }}
+    steps:
+      - name: Derive workflow context
+        id: vars
+        shell: bash
+        run: |
+          short_sha="${GITHUB_SHA::7}"
+          publish_mode="none"
+          source_branch=""
+          branch_slug=""
+          release_tag_name=""
+
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            publish_mode="release"
+            release_tag_name="${GITHUB_REF_NAME}"
+            source_branch="${GITHUB_REF_NAME}"
+          else
+            if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+              source_branch="${GITHUB_HEAD_REF}"
+            else
+              source_branch="${GITHUB_REF_NAME}"
+            fi
+
+            branch_slug="$(echo "${source_branch}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9._-]+/-/g; s/^-+//; s/-+$//')"
+
+            if [[ "${GITHUB_EVENT_NAME}" == "push" && "${GITHUB_REF}" == "refs/heads/main" ]]; then
+              publish_mode="main"
+            fi
+          fi
+
+          echo "short_sha=${short_sha}" >> "${GITHUB_OUTPUT}"
+          echo "source_branch=${source_branch}" >> "${GITHUB_OUTPUT}"
+          echo "branch_slug=${branch_slug}" >> "${GITHUB_OUTPUT}"
+          echo "publish_mode=${publish_mode}" >> "${GITHUB_OUTPUT}"
+          echo "release_tag_name=${release_tag_name}" >> "${GITHUB_OUTPUT}"
+
+      - name: Summarize workflow context
+        shell: bash
+        run: |
+          {
+            echo "### Workflow Context"
+            echo "- Publish mode: \`${{ steps.vars.outputs.publish_mode }}\`"
+            echo "- Short SHA: \`${{ steps.vars.outputs.short_sha }}\`"
+            echo "- Source branch: \`${{ steps.vars.outputs.source_branch }}\`"
+            if [[ -n "${{ steps.vars.outputs.branch_slug }}" ]]; then
+              echo "- Branch slug: \`${{ steps.vars.outputs.branch_slug }}\`"
+            fi
+            if [[ -n "${{ steps.vars.outputs.release_tag_name }}" ]]; then
+              echo "- Release tag: \`${{ steps.vars.outputs.release_tag_name }}\`"
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+  frontend-ci:
+    name: Frontend CI
+    needs:
+      - prepare-context
+    uses: ./.github/workflows/_frontend.yml
+    with:
+      node_version: "20"
+      artifact_retention_days: "14"
+
+  backend-ci:
+    name: Backend CI
+    needs:
+      - prepare-context
+    uses: ./.github/workflows/_backend.yml
+    with:
+      python_version: "3.10"
+      artifact_retention_days: "14"
+
+  security-scan:
+    name: Security Scan
+    needs:
+      - prepare-context
+    uses: ./.github/workflows/_security.yml
+    with:
+      artifact_retention_days: "14"
+
+  frontend-image:
+    name: Frontend Image
+    needs:
+      - prepare-context
+      - frontend-ci
+      - security-scan
+    uses: ./.github/workflows/_service-image.yml
+    with:
+      service: frontend
+      image: nguyenhongphu1/noteweb-frontend
+      dockerfile: ./apps/frontend/dockerfile
+      short_sha: ${{ needs.prepare-context.outputs.short_sha }}
+      branch_slug: ${{ needs.prepare-context.outputs.branch_slug }}
+      publish_mode: ${{ needs.prepare-context.outputs.publish_mode }}
+      release_tag_name: ${{ needs.prepare-context.outputs.release_tag_name }}
+      artifact_retention_days: "14"
+    secrets: inherit
+
+  backend-image:
+    name: Backend Image
+    needs:
+      - prepare-context
+      - backend-ci
+      - security-scan
+    uses: ./.github/workflows/_service-image.yml
+    with:
+      service: backend
+      image: nguyenhongphu1/noteweb-backend
+      dockerfile: ./apps/backend/dockerfile
+      short_sha: ${{ needs.prepare-context.outputs.short_sha }}
+      branch_slug: ${{ needs.prepare-context.outputs.branch_slug }}
+      publish_mode: ${{ needs.prepare-context.outputs.publish_mode }}
+      release_tag_name: ${{ needs.prepare-context.outputs.release_tag_name }}
+      artifact_retention_days: "14"
+    secrets: inherit
+
+  delivery-contract:
+    name: Delivery Contract
+    needs:
+      - prepare-context
+      - frontend-image
+      - backend-image
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/_delivery-contract.yml
+    with:
+      artifact_retention_days: "14"
+      short_sha: ${{ needs.prepare-context.outputs.short_sha }}
+      source_branch: ${{ needs.prepare-context.outputs.source_branch }}
+      branch_slug: ${{ needs.prepare-context.outputs.branch_slug }}
+      frontend_repository: ${{ needs.frontend-image.outputs.image_repository }}
+      frontend_immutable_tag: ${{ needs.frontend-image.outputs.immutable_tag }}
+      frontend_traceability_tag: ${{ needs.frontend-image.outputs.traceability_tag }}
+      frontend_image_ref: ${{ needs.frontend-image.outputs.image_ref }}
+      backend_repository: ${{ needs.backend-image.outputs.image_repository }}
+      backend_immutable_tag: ${{ needs.backend-image.outputs.immutable_tag }}
+      backend_traceability_tag: ${{ needs.backend-image.outputs.traceability_tag }}
+      backend_image_ref: ${{ needs.backend-image.outputs.image_ref }}
+
+
+  deploy:
+    name: Deploy App
+    needs: [delivery-contract]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/cd-pipeline.yml
+    secrets: inherit
+
+  deploy-monitoring:
+    name: Deploy Monitoring
+    needs: [deploy]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/cd-monitoring-stack.yml
+    secrets: inherit
