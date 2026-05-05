@@ -23,6 +23,8 @@
         groups: docker
         append: yes
 
+    
+
 # =========================
 # SWARM INIT (MANAGER ONLY)
 # =========================
@@ -47,6 +49,58 @@
     - name: Save token
       set_fact:
         swarm_token: "{{ worker_token.stdout }}"
+    
+    - name: Debug variables
+      debug:
+        msg: "Domain={{ domain_name }}, Email={{ email }}"
+
+    - name: Install certbot
+      apt:
+        name:
+          - certbot
+        state: present
+        update_cache: yes
+
+    # 1. Check SSL exists
+    - name: Check SSL exists
+      stat:
+        path: /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem
+      register: cert_file
+
+    # =========================
+    # ONLY RUN IF NO CERT
+    # =========================
+
+    # 2. Get running stacks (only if no cert)
+    - name: Get docker stacks
+      command: docker stack ls --format "{{'{{'}}.Name{{'}}'}}"
+      register: stacks
+      when: not cert_file.stat.exists
+
+    # 3. Remove stack that may occupy port 80
+    - name: Remove app stack if exists
+      command: docker stack rm app
+      when:
+        - not cert_file.stat.exists
+        - "'app' in stacks.stdout_lines"
+
+    # 4. Wait for port 80 free
+    - name: Wait for port 80 free
+      wait_for:
+        port: 80
+        state: stopped
+        timeout: 60
+      when: not cert_file.stat.exists
+
+    # 5. Obtain SSL certificate
+    - name: Obtain SSL certificate
+      command: >
+        certbot certonly --standalone
+        -d {{ domain_name }}
+        --non-interactive
+        --agree-tos
+        -m {{ email }}
+      when: not cert_file.stat.exists
 
 # =========================
 # WORKERS JOIN SWARM
