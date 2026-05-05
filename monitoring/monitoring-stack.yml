@@ -1,0 +1,46 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    configs:
+      - source: prometheus_config
+        target: /etc/prometheus/prometheus.yml
+      - source: alert_rules
+        target: /etc/prometheus/alert-rules.yml
+    volumes:
+      - prometheus_data:/prometheus
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - noteweb-net
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - noteweb-net
+
+configs:
+  prometheus_config:
+    file: ./prometheus.yml
+  alert_rules:
+    file: ./alert_rules.yml
+
+networks:
+  noteweb-net:
+    external: true
+    name: noteweb-net
+
+volumes:
+  prometheus_data:
+  grafana_data:

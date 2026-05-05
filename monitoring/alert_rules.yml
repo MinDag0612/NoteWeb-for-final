@@ -1,0 +1,28 @@
+groups:
+  - name: container_alerts
+    rules:
+      - alert: ContainerDown
+        expr: absent(container_last_seen{name="backend"})
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backend container is down"
+
+      - alert: HighCPU
+        expr: rate(container_cpu_usage_seconds_total[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+
+      - alert: HighMemory
+        expr: |
+          (container_memory_usage_bytes{container!=""} 
+          / container_spec_memory_limit_bytes{container!=""}) * 100 > 85
+          and
+          container_spec_memory_limit_bytes{container!=""} > 0
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.name }}"

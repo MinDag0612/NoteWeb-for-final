@@ -1,0 +1,16 @@
+.git
+.github
+.venv
+.tmp
+.ruff_cache
+__pycache__/
+*.pyc
+frontend/node_modules
+frontend/build
+tests
+pytest.ini
+*.pdf
+*.txt
+PLAN.md
+pdf2txt.py
+node_modules

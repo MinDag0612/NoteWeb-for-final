@@ -12,6 +12,7 @@ services:
       CLOUDY_API_KEY: ${CLOUDY_API_KEY}
       CLOUDY_SECRET: ${CLOUDY_SECRET}
       GG_CLIENT_ID: ${GG_CLIENT_ID}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
 
     networks:
       app-network:
@@ -20,6 +21,12 @@ services:
 
     deploy:
       replicas: 3
+
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M 
 
       update_config:
         parallelism: 1
@@ -35,6 +42,12 @@ services:
 
     deploy:
       replicas: 2
+
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
 
       update_config:
         parallelism: 1
@@ -75,6 +88,59 @@ services:
 
     deploy:
       replicas: 1
+      restart_policy:
+            condition: on-failure
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - app-network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - app-network
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    configs:
+      - source: otel_config
+        target: /etc/otel_config.yaml
+    command: ["--config=/etc/otel_config.yaml"]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    networks:
+      - app-network
 
 networks:
   app-network:
@@ -88,3 +154,5 @@ configs:
   nginx_config:
     name: nginx_config_${IMAGE_TAG}
     file: ./nginx.conf
+  otel_config:
+    file: ./monitoring/otel_config.yaml
