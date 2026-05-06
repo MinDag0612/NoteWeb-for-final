@@ -227,7 +227,7 @@ jobs:
             cd /home/ubuntu/deploy
 
             docker network inspect noteweb-net >/dev/null 2>&1 || \
-              docker network create --driver overlay --attachable noteweb-net
+              docker network create --driver overlay noteweb-net
 
             docker stack deploy \
               --with-registry-auth \
@@ -235,7 +235,7 @@ jobs:
               app
 
             docker run --rm \
-              --network noteweb-net \
+              --network proxy \
               -e MONGODB_URI="$MONGODB_URI" \
               -e SEED_DROP=false \
               dangwminh/backend:$IMAGE_TAG \
