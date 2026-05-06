@@ -49,58 +49,6 @@
     - name: Save token
       set_fact:
         swarm_token: "{{ worker_token.stdout }}"
-    
-    - name: Debug variables
-      debug:
-        msg: "Domain={{ domain_name }}, Email={{ email }}"
-
-    - name: Install certbot
-      apt:
-        name:
-          - certbot
-        state: present
-        update_cache: yes
-
-    # 1. Check SSL exists
-    - name: Check SSL exists
-      stat:
-        path: /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem
-      register: cert_file
-
-    # =========================
-    # ONLY RUN IF NO CERT
-    # =========================
-
-    # 2. Get running stacks (only if no cert)
-    - name: Get docker stacks
-      command: docker stack ls --format "{{'{{'}}.Name{{'}}'}}"
-      register: stacks
-      when: not cert_file.stat.exists
-
-    # 3. Remove stack that may occupy port 80
-    - name: Remove app stack if exists
-      command: docker stack rm app
-      when:
-        - not cert_file.stat.exists
-        - "'app' in stacks.stdout_lines"
-
-    # 4. Wait for port 80 free
-    - name: Wait for port 80 free
-      wait_for:
-        port: 80
-        state: stopped
-        timeout: 60
-      when: not cert_file.stat.exists
-
-    # 5. Obtain SSL certificate
-    - name: Obtain SSL certificate
-      command: >
-        certbot certonly --standalone
-        -d {{ domain_name }}
-        --non-interactive
-        --agree-tos
-        -m {{ email }}
-      when: not cert_file.stat.exists
 
 # =========================
 # WORKERS JOIN SWARM
@@ -118,3 +66,72 @@
         docker swarm join
         --token {{ hostvars[groups['manager'][0]].swarm_token }}
         {{ hostvars[groups['manager'][0]].ansible_host | default(groups['manager'][0]) }}:2377
+
+# =========================
+# TRAEFIK & APP DEPLOY (MANAGER ONLY)
+# =========================
+- hosts: manager
+  become: yes
+
+  tasks:
+    - name: Create overlay network
+      shell: docker network create -d overlay noteweb-net || true
+
+    - name: Create traefik acme dir
+      file:
+        path: /opt/traefik
+        state: directory                             
+
+    - name: Create acme file
+      file:
+        path: /opt/traefik/acme.json
+        state: touch
+        mode: '600'
+
+    - name: Check Traefik exists
+      shell: docker service ls -q --filter name=traefik
+      register: trf_check
+      changed_when: false
+
+    - name: Check Traefik exists
+      shell: docker service ls -q --filter name=traefik
+      register: trf_check
+      changed_when: false
+
+    - name: Deploy Traefik (HTTPS layer)
+      shell: |
+        echo "[1/4] Deploying Traefik..."
+
+        docker service create \
+          --name traefik \
+          --constraint=node.role==manager \
+          --publish 80:80 \
+          --publish 443:443 \
+          --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
+          --mount type=bind,source=/opt/traefik/acme.json,target=/acme.json \
+          --network noteweb-net \
+          traefik:v3 \
+          --providers.docker=true \
+          --providers.docker.swarmmode=true \
+          --providers.docker.exposedbydefault=false \
+          --entrypoints.web.address=:80 \
+          --entrypoints.websecure.address=:443 \
+          --entrypoints.web.http.redirections.entrypoint.to=websecure \
+          --certificatesresolvers.le.acme.httpchallenge=true \
+          --certificatesresolvers.le.acme.httpchallenge.entrypoint=web \
+          --certificatesresolvers.le.acme.email=tonminhdang9@gmail.com \
+          --certificatesresolvers.le.acme.storage=/acme.json
+
+        echo "[2/4] Traefik created"
+        echo "[3/4] Waiting for service..."
+        sleep 5
+        echo "[4/4] Done"
+
+      when: trf_check.stdout == ""
+
+    - name: Wait Traefik running
+      shell: docker service ps traefik --filter "desired-state=running" --format "{{.CurrentState}}"
+      register: trf_state
+      retries: 20
+      delay: 5
+      until: trf_state.stdout is search("Running")
