@@ -102,9 +102,7 @@ services:
       - mongo_data:/data/db
 
     networks:
-      noteweb-net:
-        aliases:
-          - mongo
+    - noteweb-net
 
     deploy:
       replicas: 1

@@ -75,7 +75,12 @@
 
   tasks:
     - name: Create overlay network
-      shell: docker network create -d overlay noteweb-net || true
+      shell: |
+        docker network inspect noteweb-net >/dev/null 2>&1 || \
+        docker network create \
+          -d overlay \
+          --attachable \
+          noteweb-net
 
     - name: Create traefik acme dir
       file:
