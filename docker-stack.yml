@@ -46,19 +46,18 @@ services:
     image: dangwminh/frontend:${IMAGE_TAG}
 
     networks:
-      noteweb-net:
-        external: true
+      - noteweb-net
 
     deploy:
       replicas: 2
 
       labels:
-        - traefik.enable=true
-        - traefik.http.routers.frontend.rule=Host(`dangtm.pro`)
-        - traefik.http.routers.frontend.entrypoints=websecure
-        - traefik.http.routers.frontend.tls.certresolver=le
-        - traefik.docker.network=noteweb-net
-        - traefik.http.services.frontend.loadbalancer.server.port=80
+      - traefik.enable=true
+      - traefik.http.routers.frontend.rule=Host(`dangtm.pro`)
+      - traefik.http.routers.frontend.entrypoints=websecure
+      - traefik.http.routers.frontend.tls.certresolver=le
+      - traefik.docker.network=noteweb-net
+      - traefik.http.services.frontend.loadbalancer.server.port=80
 
       resources:
         limits:

@@ -112,7 +112,7 @@
           --network noteweb-net \
           traefik:v3 \
           --providers.docker=true \
-          --providers.docker.swarmmode=true \
+          --providers.swarm=true \
           --providers.docker.exposedbydefault=false \
           --entrypoints.web.address=:80 \
           --entrypoints.websecure.address=:443 \
@@ -127,11 +127,10 @@
         sleep 5
         echo "[4/4] Done"
 
-      when: trf_check.stdout == ""
 
-    - name: Wait Traefik running
-      shell: docker service ps traefik --filter "desired-state=running" --format "{{.CurrentState}}"
-      register: trf_state
-      retries: 20
-      delay: 5
-      until: trf_state.stdout is search("Running")
+    # - name: Wait Traefik running
+    #   shell: docker service ps traefik --filter "desired-state=running" --format "{{.CurrentState}}"
+    #   register: trf_state
+    #   retries: 20
+    #   delay: 5
+    #   until: trf_state.stdout is search("Running")
