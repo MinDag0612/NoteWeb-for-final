@@ -1,5 +1,5 @@
 ami_id                  = "ami-01811d4912b4ccb26"
-instance_type           = "t3.micro"
+instance_type           = "t3.medium"
 worker_count            = 3
 key_name                = "key-terra"
 ssh_private_key_path    = "~/.ssh/key-terra.pem"
