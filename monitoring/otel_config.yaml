@@ -1,3 +1,7 @@
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
 receivers:
   otlp:
     protocols:
@@ -14,11 +18,11 @@ processors:
 exporters:
   prometheus:
     endpoint: "0.0.0.0:8889"
-  
   debug:
     verbosity: normal
 
 service:
+  extensions: [health_check]
   pipelines:
     metrics:
       receivers: [otlp]

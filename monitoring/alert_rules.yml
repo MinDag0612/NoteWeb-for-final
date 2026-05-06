@@ -2,22 +2,26 @@ groups:
   - name: container_alerts
     rules:
       - alert: ContainerDown
-        expr: absent(container_last_seen{name="backend"})
+        expr: absent(container_last_seen{container_label_com_docker_swarm_service_name="noteweb_backend"})
         for: 1m
         labels:
           severity: critical
         annotations:
-          summary: "Backend container is down"
+          summary: "Backend service is down"
+          description: "No backend container has been seen for more than 1 minute"
 
       - alert: HighCPU
-        expr: rate(container_cpu_usage_seconds_total[5m]) * 100 > 80
+        expr: rate(container_cpu_usage_seconds_total{container!="",image!=""}[5m]) * 100 > 80
         for: 5m
         labels:
           severity: warning
+        annotations:
+          summary: "High CPU on {{ $labels.name }}"
+          description: "CPU usage is {{ $value | printf \"%.2f\" }}%"
 
       - alert: HighMemory
         expr: |
-          (container_memory_usage_bytes{container!=""} 
+          (container_memory_usage_bytes{container!=""}
           / container_spec_memory_limit_bytes{container!=""}) * 100 > 85
           and
           container_spec_memory_limit_bytes{container!=""} > 0
@@ -26,3 +30,4 @@ groups:
           severity: warning
         annotations:
           summary: "High memory usage on {{ $labels.name }}"
+          description: "Memory usage is {{ $value | printf \"%.2f\" }}%"

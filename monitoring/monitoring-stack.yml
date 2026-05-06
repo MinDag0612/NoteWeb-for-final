@@ -4,10 +4,12 @@ services:
     ports:
       - "9090:9090"
     configs:
-      - source: prometheus_config
-        target: /etc/prometheus/prometheus.yml
-      - source: alert_rules
-        target: /etc/prometheus/alert-rules.yml
+      prometheus_config:
+        file: ./prometheus.yml
+      alert_rules:
+        file: ./alert_rules.yml
+      grafana_datasource:
+        file: ./grafana/datasources/datasource.yml
     volumes:
       - prometheus_data:/prometheus
     deploy:
@@ -18,10 +20,15 @@ services:
 
   grafana:
     image: grafana/grafana:latest
+    configs:
+      - source: grafana_datasource
+        target: /etc/grafana/provisioning/datasources/datasource.yml
     ports:
       - "3001:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_SECURITY_ADMIN_PASSWORD__FILE=/run/secrets/grafana_password
+    secrets:
+      - grafana_password
     volumes:
       - grafana_data:/var/lib/grafana
     deploy:
@@ -44,3 +51,7 @@ networks:
 volumes:
   prometheus_data:
   grafana_data:
+
+secrets:
+  grafana_password:
+    external: true
