@@ -1,8 +1,8 @@
 resource "aws_instance" "manager" {
-  ami                    = "ami-01811d4912b4ccb26"
-  instance_type          = "t3.micro"
+  ami                    = var.ami_id
+  instance_type          = var.instance_type
   vpc_security_group_ids = [aws_security_group.swarm_sg.id]
-  key_name               = "key-terra"
+  key_name               = var.key_name
 
   metadata_options {
     http_endpoint               = "enabled"
@@ -20,11 +20,11 @@ resource "aws_instance" "manager" {
 }
 
 resource "aws_instance" "worker" {
-  count                  = 3
-  ami                    = "ami-01811d4912b4ccb26"
-  instance_type          = "t3.micro"
+  count                  = var.worker_count
+  ami                    = var.ami_id
+  instance_type          = var.instance_type
   vpc_security_group_ids = [aws_security_group.swarm_sg.id]
-  key_name               = "key-terra"
+  key_name               = var.key_name
 
   metadata_options {
     http_endpoint               = "enabled"
@@ -39,12 +39,4 @@ resource "aws_instance" "worker" {
   tags = {
     Name = "swarm-worker-${count.index + 1}"
   }
-}
-
-output "manager_ip" {
-  value = aws_eip.manager_eip.public_ip
-}
-
-output "worker_ips" {
-  value = aws_instance.worker[*].public_ip
 }
