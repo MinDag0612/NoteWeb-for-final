@@ -15,8 +15,7 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
 
     networks:
-      noteweb-net:
-        external: true
+      - noteweb-net
         
 
     deploy:
