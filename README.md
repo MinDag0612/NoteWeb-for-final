@@ -1,6 +1,6 @@
 # NoteWeb
 
-NoteWeb is a full-stack web application for creating, editing, and managing personal notes with image upload support.
+NoteWeb is a full-stack web application for creating, editing, and managing personal notes with images upload support.
 
 ## 1. Project Overview
 
