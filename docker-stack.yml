@@ -15,9 +15,9 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
 
     networks:
-      app-network:
-        aliases:
-          - backend
+      - noteweb-net:
+          aliases:
+            - backend
 
     deploy:
       replicas: 3
@@ -43,7 +43,7 @@ services:
     image: dangwminh/frontend:${IMAGE_TAG}
 
     networks:
-      app-network:
+      noteweb-net:
         aliases:
           - frontend
 
@@ -100,7 +100,7 @@ services:
       - mongo_data:/data/db
 
     networks:
-      app-network:
+      noteweb-net:
         aliases:
           - mongo
 
@@ -130,7 +130,7 @@ services:
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
     networks:
-      - app-network
+      - noteweb-net
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
