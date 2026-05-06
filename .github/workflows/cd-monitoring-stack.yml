@@ -1,13 +1,12 @@
 name: Deploy Monitoring
 
 on:
-  workflow_call:        # trigger by CI-CD Pipeline
-  workflow_dispatch:    # manual trigger from GitHub UI
+  workflow_call:
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,24 +22,50 @@ jobs:
         run: |
           INSTANCE_ID=$(aws ec2 describe-instances \
             --filters "Name=tag:Name,Values=swarm-manager" \
+                      "Name=instance-state-name,Values=running" \
             --query "Reservations[0].Instances[0].InstanceId" \
             --output text)
+
+          if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" = "None" ]; then
+            echo "ERROR: Could not find running swarm-manager instance"
+            exit 1
+          fi
+
           echo "INSTANCE_ID=$INSTANCE_ID" >> $GITHUB_ENV
+          echo "Found instance: $INSTANCE_ID"
+
+      - name: Wait instance running
+        run: |
+          aws ec2 wait instance-running --instance-ids "$INSTANCE_ID"
 
       - name: Get public IP
         run: |
           PUBLIC_IP=$(aws ec2 describe-instances \
-            --instance-ids $INSTANCE_ID \
+            --instance-ids "$INSTANCE_ID" \
             --query "Reservations[0].Instances[0].PublicIpAddress" \
             --output text)
-          echo "SERVER_HOST=$PUBLIC_IP" >> $GITHUB_ENV
 
-      - name: Wait SSH
+          if [ -z "$PUBLIC_IP" ] || [ "$PUBLIC_IP" = "None" ]; then
+            echo "ERROR: Instance $INSTANCE_ID has no public IP"
+            exit 1
+          fi
+
+          echo "SERVER_HOST=$PUBLIC_IP" >> $GITHUB_ENV
+          echo "Found IP: $PUBLIC_IP"
+
+      - name: Wait for SSH
         run: |
+          echo "Waiting for SSH on $SERVER_HOST..."
           for i in {1..30}; do
-            nc -z $SERVER_HOST 22 && echo "SSH ready" && break
+            if nc -z "$SERVER_HOST" 22; then
+              echo "SSH ready after $((i * 5))s"
+              exit 0
+            fi
+            echo "Attempt $i/30 — retrying in 5s..."
             sleep 5
           done
+          echo "ERROR: SSH never became available"
+          exit 1
 
       - name: Prepare monitoring folder
         uses: appleboy/ssh-action@v1.0.3
