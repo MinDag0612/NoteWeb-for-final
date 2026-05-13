@@ -57,7 +57,7 @@ export default function LoginPage() {
           <div className="col-6 d-flex flex-column">
             <div className="main-form d-flex w-100">
               <div className="logo-box col-5 d-flex align-items-center justify-content-center">
-                <p>Logo here</p>
+                <p>Logo here + test</p>
               </div>
               <div className="main-box m-0 row col-7 p-4">
                 <div className="title-box d-flex flex-column justify-content-center align-items-center flex-column">
